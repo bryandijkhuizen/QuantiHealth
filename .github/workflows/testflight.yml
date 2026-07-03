@@ -15,6 +15,7 @@ on:
         description: "Allow fastlane match to create signing assets"
         default: "false"
         required: true
+        type: boolean
 
 jobs:
   matrix:
@@ -66,7 +67,7 @@ jobs:
       MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
       MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
       MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
-      MATCH_READONLY: ${{ github.event.inputs.bootstrap_signing == 'true' && 'false' || 'true' }}
+      MATCH_READONLY: ${{ inputs.bootstrap_signing && 'false' || 'true' }}
 
     steps:
       - uses: actions/checkout@v4

@@ -11,6 +11,10 @@ on:
         description: "App id from release/apps.json, or all"
         default: "all"
         required: true
+      bootstrap_signing:
+        description: "Allow fastlane match to create signing assets"
+        default: "false"
+        required: true
 
 jobs:
   matrix:
@@ -44,6 +48,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         app: ${{ fromJson(needs.matrix.outputs.apps) }}
 
@@ -61,6 +66,7 @@ jobs:
       MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
       MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
       MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+      MATCH_READONLY: ${{ github.event.inputs.bootstrap_signing == 'true' && 'false' || 'true' }}
 
     steps:
       - uses: actions/checkout@v4

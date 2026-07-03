@@ -34,7 +34,7 @@ platform :ios do
 
     match(
       type: "appstore",
-      readonly: true,
+      readonly: ENV.fetch("MATCH_READONLY", "true") != "false",
       git_url: ENV.fetch("MATCH_GIT_URL"),
       app_identifier: ENV.fetch("IOS_APP_IDENTIFIER"),
       api_key: api_key

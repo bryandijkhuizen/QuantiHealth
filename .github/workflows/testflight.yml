@@ -46,7 +46,7 @@ jobs:
   testflight:
     name: TestFlight ${{ matrix.app.name }}
     needs: matrix
-    runs-on: macos-latest
+    runs-on: macos-26
     strategy:
       fail-fast: false
       max-parallel: 1

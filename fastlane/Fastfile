@@ -25,6 +25,14 @@ def app_scheme
   ENV.fetch("IOS_SCHEME")
 end
 
+def app_project
+  File.join(app_path, "#{app_scheme}.xcodeproj")
+end
+
+def app_ipa
+  File.join(app_path, "build", "#{app_scheme}.ipa")
+end
+
 platform :ios do
   desc "Build and upload the selected Quanti app to TestFlight"
   lane :beta do
@@ -44,19 +52,19 @@ platform :ios do
       if app_platform == "native-ios"
         increment_build_number(
           build_number: ENV.fetch("GITHUB_RUN_NUMBER", Time.now.to_i.to_s),
-          xcodeproj: "#{app_scheme}.xcodeproj"
+          xcodeproj: app_project
         )
         build_app(
-          project: "#{app_scheme}.xcodeproj",
+          project: app_project,
           scheme: app_scheme,
           export_method: "app-store",
           clean: true,
-          output_directory: "build",
+          output_directory: File.join(app_path, "build"),
           output_name: "#{app_scheme}.ipa"
         )
         upload_to_testflight(
           api_key: api_key,
-          ipa: "build/#{app_scheme}.ipa",
+          ipa: app_ipa,
           skip_waiting_for_build_processing: true
         )
       else

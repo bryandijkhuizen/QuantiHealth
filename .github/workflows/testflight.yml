@@ -1,0 +1,86 @@
+name: Deploy Quanti Apps to TestFlight
+
+on:
+  push:
+    tags:
+      - "quantivita-ios-v*.*.*"
+      - "quantivita-native-ios-v*.*.*"
+      - "progressa-native-ios-v*.*.*"
+  workflow_dispatch:
+    inputs:
+      app:
+        description: "App id from release/apps.json, or all"
+        default: "all"
+        required: true
+
+jobs:
+  matrix:
+    name: Build app matrix
+    runs-on: ubuntu-latest
+    outputs:
+      apps: ${{ steps.matrix.outputs.apps }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: matrix
+        shell: bash
+        run: |
+          requested="${{ github.event.inputs.app || 'all' }}"
+          ref_name="${GITHUB_REF_NAME}"
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            apps="$(jq -c --arg tag "${ref_name}" '[.apps[] | select($tag | startswith(.tagPrefix))]' release/apps.json)"
+          elif [[ "${requested}" == "all" ]]; then
+            apps="$(jq -c '.apps' release/apps.json)"
+          else
+            apps="$(jq -c --arg app "${requested}" '[.apps[] | select(.id == $app)]' release/apps.json)"
+          fi
+          if [[ "${apps}" == "[]" ]]; then
+            echo "Unknown app: ${requested}" >&2
+            exit 1
+          fi
+          echo "apps=${apps}" >> "$GITHUB_OUTPUT"
+
+  testflight:
+    name: TestFlight ${{ matrix.app.name }}
+    needs: matrix
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJson(needs.matrix.outputs.apps) }}
+
+    env:
+      APP_PATH: ${{ matrix.app.path }}
+      APP_PLATFORM: ${{ matrix.app.platform }}
+      IOS_SCHEME: ${{ matrix.app.scheme }}
+      IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+      IOS_APP_IDENTIFIER: ${{ secrets[matrix.app.bundleIdentifierSecret] }}
+
+      APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+
+      MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+      MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+      MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Set up Flutter
+        if: matrix.app.platform == 'flutter-ios'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install Ruby dependencies
+        run: bundle install
+
+      - name: Build and upload to TestFlight
+        run: bundle exec fastlane ios beta

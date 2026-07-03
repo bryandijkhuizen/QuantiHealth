@@ -1,0 +1,57 @@
+name: Deploy Quantivita MCP
+
+on:
+  push:
+    tags:
+      - "quantivita-mcp-v*.*.*"
+  workflow_dispatch:
+
+jobs:
+  test-and-deploy:
+    name: Test and deploy Quantivita MCP
+    runs-on: ubuntu-latest
+    env:
+      QUANTIVITA_HOMESERVER_HOST: ${{ secrets.QUANTIVITA_HOMESERVER_HOST }}
+      QUANTIVITA_HOMESERVER_USER: ${{ secrets.QUANTIVITA_HOMESERVER_USER }}
+      QUANTIVITA_HOMESERVER_DIR: ${{ secrets.QUANTIVITA_HOMESERVER_DIR }}
+      QUANTIVITA_PUBLIC_BASE_URL: ${{ secrets.QUANTIVITA_PUBLIC_BASE_URL }}
+      QUANTIVITA_SESSION_SECRET: ${{ secrets.QUANTIVITA_SESSION_SECRET }}
+      APPLE_WEB_CLIENT_ID: ${{ secrets.APPLE_WEB_CLIENT_ID }}
+      PROGRESSA_API_BASE_URL: ${{ secrets.PROGRESSA_API_BASE_URL }}
+      STRAVA_CLIENT_ID: ${{ secrets.STRAVA_CLIENT_ID }}
+      STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
+      STRAVA_REDIRECT_URI: ${{ secrets.STRAVA_REDIRECT_URI }}
+      STRAVA_API_BASE_URL: ${{ secrets.STRAVA_API_BASE_URL }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Quantivita/server/package-lock.json
+
+      - name: Install dependencies
+        working-directory: Quantivita/server
+        run: npm ci
+
+      - name: Run MCP tests
+        working-directory: Quantivita/server
+        run: npm test
+
+      - name: Install deploy tools
+        run: sudo apt-get update && sudo apt-get install -y rsync openssh-client
+
+      - name: Configure SSH key
+        shell: bash
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.QUANTIVITA_HOMESERVER_SSH_KEY }}" > ~/.ssh/quantivita_homeserver
+          chmod 600 ~/.ssh/quantivita_homeserver
+          ssh-keyscan -H "${QUANTIVITA_HOMESERVER_HOST}" >> ~/.ssh/known_hosts
+
+      - name: Deploy homeserver
+        env:
+          QUANTIVITA_HOMESERVER_KEY: ~/.ssh/quantivita_homeserver
+        run: Quantivita/scripts/deploy_homeserver.sh

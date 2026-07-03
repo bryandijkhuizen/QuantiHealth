@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>CFBundleDisplayName</key><string>Progressa</string>
+<key>CFBundleExecutable</key><string>$(EXECUTABLE_NAME)</string>
+<key>CFBundleIdentifier</key><string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+<key>CFBundleName</key><string>Progressa</string>
+<key>CFBundlePackageType</key><string>APPL</string>
+<key>CFBundleShortVersionString</key><string>0.1.0</string><key>CFBundleVersion</key><string>1</string>
+<key>CFBundleURLTypes</key><array><dict><key>CFBundleURLName</key><string>progressa</string><key>CFBundleURLSchemes</key><array><string>progressa</string></array></dict></array>
+<key>ProgressaSupabaseAnonKey</key><string>$(SUPABASE_ANON_KEY)</string>
+<key>ProgressaSupabaseURL</key><string>$(PROGRESSA_SUPABASE_URL)</string>
+<key>ProgressaConnectURL</key><string>$(PROGRESSA_CONNECT_URL)</string>
+<key>ITSAppUsesNonExemptEncryption</key><false/>
+<key>NSCameraUsageDescription</key><string>Progressa uses the camera to scan barcodes for food tracking.</string>
+<key>NSHealthShareUsageDescription</key><string>Progressa reads workout, heart-rate, energy and route data you choose to share.</string>
+<key>NSHealthUpdateUsageDescription</key><string>Progressa writes workouts to Apple Health only when you explicitly request it.</string>
+<key>NSLocationAlwaysAndWhenInUseUsageDescription</key><string>Progressa may use your location to record an active workout when the app is not visible.</string>
+<key>NSLocationWhenInUseUsageDescription</key><string>Progressa uses your location to record and visualise workout routes.</string>
+<key>NSPhotoLibraryAddUsageDescription</key><string>Progressa needs permission to save workout exports to your photo library.</string>
+<key>NSPhotoLibraryUsageDescription</key><string>Progressa lets you select profile and post images from your photo library.</string>
+<key>UIBackgroundModes</key><array><string>remote-notification</string></array>
+<key>UILaunchScreen</key><dict/>
+<key>UISupportedInterfaceOrientations</key><array><string>UIInterfaceOrientationPortrait</string><string>UIInterfaceOrientationLandscapeLeft</string><string>UIInterfaceOrientationLandscapeRight</string></array>
+<key>UISupportedInterfaceOrientations~ipad</key><array><string>UIInterfaceOrientationPortrait</string><string>UIInterfaceOrientationPortraitUpsideDown</string><string>UIInterfaceOrientationLandscapeLeft</string><string>UIInterfaceOrientationLandscapeRight</string></array>
+</dict></plist>

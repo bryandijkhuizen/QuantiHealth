@@ -1,0 +1,17 @@
+{
+  "name": "quantivita-server",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "cookie-parser": "^1.4.7",
+    "express": "^4.19.2",
+    "jose": "^6.2.3",
+    "zod": "^4.4.3"
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "version": 1,
+  "scores": {
+    "strain": {
+      "display": "0-100 percent",
+      "formula": "round((21 * (1 - exp(-totalLoad / max(userP90DailyLoad, 60)))) / 21 * 100)",
+      "inputs": ["durationMinutes", "averageHeartRate", "activeEnergyKcal", "workoutType", "restingHeartRate", "maxHeartRate"],
+      "bands": [
+        {
+          "min": 86,
+          "label": "Very high",
+          "title": "Very high daily strain",
+          "summary": "This is a demanding load. Bias strongly toward recovery next."
+        },
+        {
+          "min": 67,
+          "label": "High",
+          "title": "High daily strain",
+          "summary": "Protect the rest of the day and avoid stacking intensity."
+        },
+        {
+          "min": 48,
+          "label": "Moderate",
+          "title": "Moderate daily strain",
+          "summary": "A productive training load if recovery signals are stable."
+        },
+        {
+          "min": 24,
+          "label": "Light",
+          "title": "Light daily strain",
+          "summary": "Light load, suitable for an easier day."
+        },
+        {
+          "min": 0,
+          "label": "Restorative",
+          "title": "Restorative strain",
+          "summary": "Very low load, mostly recovery or normal movement."
+        }
+      ]
+    },
+    "bodyBattery": {
+      "display": "0-100 reserve",
+      "formula": "morningEnergy - activityDrain - stepDrain - strainDrain - stressDrain + restCharge",
+      "inputs": ["recoveryScore", "sleepScore", "strainPercent", "stressScore", "activeEnergyKcal", "steps"],
+      "bands": [
+        {
+          "min": 75,
+          "label": "High",
+          "title": "Strong reserve"
+        },
+        {
+          "min": 50,
+          "label": "Steady",
+          "title": "Steady reserve"
+        },
+        {
+          "min": 30,
+          "label": "Low",
+          "title": "Low reserve"
+        },
+        {
+          "min": 0,
+          "label": "Depleted",
+          "title": "Depleted reserve"
+        }
+      ]
+    },
+    "sleepQuality": {
+      "targetMinutes": 480,
+      "bands": [
+        {
+          "min": 85,
+          "label": "Excellent"
+        },
+        {
+          "min": 70,
+          "label": "Solid"
+        },
+        {
+          "min": 55,
+          "label": "Light"
+        },
+        {
+          "min": 0,
+          "label": "Needs data"
+        }
+      ]
+    },
+    "recovery": {
+      "display": "0-100 percent",
+      "formula": "hrvScore * 0.35 + rhrScore * 0.25 + sleepScore * 0.20 + strainBalance * 0.10 + respiratory * 0.05 + temperature * 0.05",
+      "confidence": "based on calibration status and available signals",
+      "bands": [
+        {
+          "min": 80,
+          "label": "Ready"
+        },
+        {
+          "min": 65,
+          "label": "Solid"
+        },
+        {
+          "min": 45,
+          "label": "Mixed"
+        },
+        {
+          "min": 0,
+          "label": "Low"
+        }
+      ]
+    },
+    "sleepNeed": {
+      "display": "minutes and performance percent",
+      "formula": "baselineNeed + 90 * (strainPercent / 100)^2 + sleepDebtCarryover",
+      "inputs": ["actualSleepMinutes", "strainPercent", "baselineNeedMinutes"],
+      "defaults": {
+        "baselineNeedMinutes": 480,
+        "maxStrainNeedMinutes": 90,
+        "maxDebtCarryoverMinutes": 120
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+services:
+  quantivita:
+    build:
+      context: ./server
+    container_name: quantivita
+    restart: unless-stopped
+    environment:
+      PORT: 8080
+      QUANTIVITA_DATA_DIR: /data
+      QUANTIVITA_PUBLIC_BASE_URL: ${QUANTIVITA_PUBLIC_BASE_URL:-https://api.quantivita.bryandijkh.com}
+      QUANTIVITA_SESSION_SECRET: ${QUANTIVITA_SESSION_SECRET:-dev-change-me}
+      APPLE_WEB_CLIENT_ID: ${APPLE_WEB_CLIENT_ID:-}
+      PROGRESSA_API_BASE_URL: ${PROGRESSA_API_BASE_URL:-https://api.progressa.bryandijkh.com}
+      STRAVA_CLIENT_ID: ${STRAVA_CLIENT_ID:-}
+      STRAVA_CLIENT_SECRET: ${STRAVA_CLIENT_SECRET:-}
+      STRAVA_REDIRECT_URI: ${STRAVA_REDIRECT_URI:-quantivita://quantivita.app/strava-auth}
+      STRAVA_API_BASE_URL: ${STRAVA_API_BASE_URL:-https://www.strava.com}
+    ports:
+      - "8088:8080"
+    volumes:
+      - quantivita-data:/data
+
+volumes:
+  quantivita-data:

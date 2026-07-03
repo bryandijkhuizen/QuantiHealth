@@ -1,0 +1,4 @@
+// Public, environment-specific client configuration. Never place service-role secrets here.
+PROGRESSA_SUPABASE_URL = https:/$()/supabase-progressa.bryandijkh.com
+PROGRESSA_CONNECT_URL = https:/$()/api.progressa.bryandijkh.com
+SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzc4NzQ3NDgyLCJleHAiOjE5MzY0Mjc0ODJ9.wTM-iUWp2GWd9YCqDgP1Jz7136p-cfMwIP_XcCyR7mE

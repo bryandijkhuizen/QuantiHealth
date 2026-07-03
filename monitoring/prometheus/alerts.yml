@@ -1,0 +1,42 @@
+groups:
+  - name: apps
+    rules:
+      - alert: ProgressaCriticalErrors
+        expr: sum(increase(observability_log_events_total{app="progressa",level=~"error|fatal"}[10m])) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Progressa critical errors detected"
+
+      - alert: QuantivitaCriticalErrors
+        expr: sum(increase(observability_log_events_total{app="quantivita",level=~"error|fatal"}[10m])) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Quantivita critical errors detected"
+
+      - alert: ContainerDown
+        expr: absent(container_last_seen{name=~"quantivita|progressa-api"}) or time() - container_last_seen{name=~"quantivita|progressa-api"} > 60
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Application container is down"
+
+      - alert: DiskUsageHigh
+        expr: 100 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"} * 100) > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Homeserver disk usage above 85%"
+
+      - alert: MemoryUsageHigh
+        expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Homeserver memory usage above 90%"

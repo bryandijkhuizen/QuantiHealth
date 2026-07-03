@@ -1,0 +1,59 @@
+# macOS / editor noise
+.DS_Store
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+*.p8
+*.mobileprovision
+*.cer
+*.p12
+
+# Codex / generated knowledge graph output
+.codex/
+graphify-out/
+**/graphify-out/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+**/build/
+coverage/
+
+# iOS / Xcode
+DerivedData/
+*.xcuserstate
+*.xcscmblueprint
+xcuserdata/
+Pods/
+**/Pods/
+**/.symlinks/
+*.ipa
+*.xcarchive
+
+# Android
+.gradle/
+**/.gradle/
+local.properties
+
+# Existing standalone Git repositories inside this workspace.
+# Keep them managed by their own repos, not as nested gitlinks in QuantiHealth.
+Progressa/progressa/
+Progressa/progressa-landing-page/progressa-landing/
+
+# Local notes / exports
+Progressa/*.txt

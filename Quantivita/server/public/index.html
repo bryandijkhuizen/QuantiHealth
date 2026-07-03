@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Quantivita Command Center</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Dashboard navigation">
+        <a class="brand" href="/">
+          <span class="brand-mark">Q</span>
+          <span>
+            <strong>Quantivita</strong>
+            <small>Health intelligence</small>
+          </span>
+        </a>
+        <nav class="nav-list">
+          <a class="active" href="#overview">Overview</a>
+          <a href="#signals">Signals</a>
+          <a href="#workouts">Workouts</a>
+          <a href="#integrations">Integrations</a>
+          <a id="csv-link" href="/api/me/export.csv">CSV export</a>
+        </nav>
+        <section class="side-card" id="integrations">
+          <span class="label">Quantivita API</span>
+          <strong id="sync-state">Waiting for sync</strong>
+          <p id="sync-copy">Sign in with Apple to view your synced account data.</p>
+        </section>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Private homeserver</p>
+            <h1>Health Overview</h1>
+          </div>
+          <div class="topbar-actions">
+            <span id="date-range" class="chip">Last 14 days</span>
+            <button id="theme-toggle" class="icon-button" type="button" aria-label="Toggle color theme">◐</button>
+            <a id="apple-login" class="apple-button" href="/auth/apple/start">Continue with Apple</a>
+            <button id="logout-button" class="secondary-button" type="button">Logout</button>
+          </div>
+        </header>
+
+        <section id="auth-card" class="auth-card">
+          <div>
+            <p class="eyebrow">Secure dashboard access</p>
+            <h2>Login with the same Apple ID as Quantivita.</h2>
+            <p id="login-status">Your data stays local-first on iPhone and appears here after Quantivita API sync.</p>
+          </div>
+          <details>
+            <summary>Developer token login</summary>
+            <form id="login-form" class="login-form">
+              <label for="account-id">Account ID</label>
+              <input id="account-id" autocomplete="username" placeholder="qv_..." />
+              <label for="sync-token">Sync token</label>
+              <div>
+                <input id="sync-token" autocomplete="current-password" type="password" />
+                <button>Login</button>
+              </div>
+            </form>
+          </details>
+        </section>
+
+        <section id="overview" class="hero-grid">
+          <article class="command-panel">
+            <div class="hero-copy">
+              <p class="eyebrow">Readiness command center</p>
+              <h2 id="readiness-title">No synced data yet</h2>
+              <p id="readiness-copy">Sync from the iPhone app or sign in with Apple to unlock your dashboard.</p>
+            </div>
+            <div class="gauge-wrap">
+              <div id="recovery-gauge" class="gauge" style="--score: 0">
+                <span id="gauge-value">--</span>
+                <small>recovery</small>
+              </div>
+            </div>
+            <div id="hero-signals" class="hero-signals"></div>
+          </article>
+
+          <article class="panel insights-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Today</p>
+                <h2>Actionable signals</h2>
+              </div>
+              <span id="updated-at" class="chip">Not synced</span>
+            </div>
+            <div id="insights" class="insights"></div>
+          </article>
+        </section>
+
+        <section id="stats" class="stats" aria-label="Health statistics"></section>
+
+        <section id="signals" class="dashboard-grid">
+          <article class="panel wide">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">14 day trend</p>
+                <h2>Readiness trend</h2>
+              </div>
+              <span class="legend-dot recovery">Recovery</span>
+            </div>
+            <div id="recovery-chart" class="chart"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Consistency</p>
+                <h2>Sleep minutes</h2>
+              </div>
+              <span class="legend-dot sleep">Sleep</span>
+            </div>
+            <div id="sleep-chart" class="chart"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Recovery signals</p>
+                <h2>HRV vs RHR</h2>
+              </div>
+              <div class="mini-legend">
+                <span class="legend-dot recovery">HRV</span>
+                <span class="legend-dot activity">RHR</span>
+              </div>
+            </div>
+            <div id="heart-chart" class="chart"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Daily activity</p>
+                <h2>Energy and steps</h2>
+              </div>
+            </div>
+            <div id="activity-chart" class="bar-chart"></div>
+          </article>
+
+          <article class="panel body-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Body systems</p>
+                <h2>Vitals map</h2>
+              </div>
+            </div>
+            <div id="body-systems" class="body-systems"></div>
+          </article>
+        </section>
+
+        <section class="panel wide" id="workouts-section">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Synced day</p>
+              <h2>Today’s workouts</h2>
+            </div>
+            <div class="panel-actions">
+              <button id="progressa-sync" class="ghost-button" type="button">Sync Progressa</button>
+              <a class="text-link" href="#csv-link">Export all data</a>
+            </div>
+          </div>
+          <div id="workouts" class="workouts"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/script.js"></script>
+  </body>
+</html>

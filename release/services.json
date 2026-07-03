@@ -1,0 +1,13 @@
+{
+  "services": [
+    {
+      "id": "quantivita-mcp",
+      "name": "Quantivita MCP / Homeserver",
+      "path": "Quantivita/server",
+      "tagPrefix": "quantivita-mcp-v",
+      "versionFile": "Quantivita/server/package.json",
+      "testCommand": "npm test",
+      "deployWorkflow": "deploy-quantivita-mcp.yml"
+    }
+  ]
+}

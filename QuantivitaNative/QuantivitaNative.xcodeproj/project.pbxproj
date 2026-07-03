@@ -1,0 +1,680 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		063580470B22683824FBD6F0 /* StravaAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F92093FC16F4E4CAEDF2430 /* StravaAuthService.swift */; };
+		0A51256F9041945A6FE0220E /* ProgressaWorkoutLinker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EA463D2CA9F8AECE9C08E5D /* ProgressaWorkoutLinker.swift */; };
+		1931F3B74DDE920DA5767F68 /* WorkoutViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A603DAAF02C69D860A7AFD7B /* WorkoutViews.swift */; };
+		1E6D16375480C96469589CDB /* StravaTCXBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E96CE0FF8F77DE279B5B9B3 /* StravaTCXBuilderTests.swift */; };
+		2750B5C6BCCB3471EF1249FD /* HealthKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FCF3C386E488A82C232D76 /* HealthKitService.swift */; };
+		298D18BD522CA0E72A30F750 /* WorkoutDecodingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 217EF5B9F8A299D74A545260 /* WorkoutDecodingTests.swift */; };
+		3A12C1A1D41C098996FECF2A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE955107E75A98599383F26A /* SettingsView.swift */; };
+		41B644B9E0AFCE2F2AED743D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = AA13D6A897E071CD35FBFCE6 /* PrivacyInfo.xcprivacy */; };
+		42427DFDA0660315A4D1C2F3 /* DashboardCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 091B6B6897D4C9E994F22EC3 /* DashboardCache.swift */; };
+		427C12E0FF3475C29A17316F /* ProgressaWorkoutLinkerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFD2B7A66D4531E37B4E49D2 /* ProgressaWorkoutLinkerTests.swift */; };
+		5667E4105C46075D76C2DBEF /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4E41970A5435ECE8CFDD589 /* AppModel.swift */; };
+		5D233D2459CECBE67A2AEDA1 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 982236CBED6419BB12B09377 /* Foundation.framework */; };
+		5DE99E1D2D4EAD16395E1D11 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 17FFCDF56905A594D53D01FB /* Assets.xcassets */; };
+		64A184829D70008F1715E462 /* DashboardViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8459556EA9A10C2A9C9BA35 /* DashboardViews.swift */; };
+		65DA66D21B96402624FAE75C /* QuantivitaNativeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0796975A52D16EFD960F1CC6 /* QuantivitaNativeApp.swift */; };
+		6CF953A35A55FDDAAA3C667D /* AppearanceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E16AA9366F308CD4CE6339B9 /* AppearanceModels.swift */; };
+		6ECD42D87FE9D93036D5EE00 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B06EABBF4BE144C49C9B0BD /* RootView.swift */; };
+		7B5B6AFCABDA80BE68C735A7 /* ProgressaAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3136AA87E55053B0DCA7B12 /* ProgressaAuthService.swift */; };
+		8D456E1A59FE381022266D0B /* RecoveryScorer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 521D6E97198D579137E47AE4 /* RecoveryScorer.swift */; };
+		8EFAFD08E890EEC7D4B24550 /* ProgressaAuthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDE1D05AAEE425695A0875F8 /* ProgressaAuthTests.swift */; };
+		A4F065D525743262A32201D9 /* SecureAccountStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10C8BE875C03E91BDDB9EC1 /* SecureAccountStore.swift */; };
+		AB7EF7D8C57CC6BABAB8E44C /* RecoveryScorerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38670637FB691A0E6C89D2F6 /* RecoveryScorerTests.swift */; };
+		5B1D2C3D4E5F60718293A4B5 /* SleepSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E1E1F0A0B0C0D0E0F101112 /* SleepSummaryTests.swift */; };
+		6C2E3D4E5F60718293A4B5C6 /* StravaErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F2F203A0B0C0D0E0F101213 /* StravaErrorTests.swift */; };
+		ACFB7CEAE580E8E8F1931DBC /* WorkoutFidelityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AED0CBDDBA4CCEC1E11607E /* WorkoutFidelityTests.swift */; };
+		AE09EFE694F4CC3C4B49B963 /* HealthModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B29878363AE5FA57EB112582 /* HealthModels.swift */; };
+		C30E2EC3DD56E02EB128FD5D /* ScoringParityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2226C7BC89E02EDC97489AAD /* ScoringParityTests.swift */; };
+		CC4300C994ACA973F25B4194 /* WorkoutFidelity.swift in Sources */ = {isa = PBXBuildFile; fileRef = B926A1620C6B6A0D6D66984D /* WorkoutFidelity.swift */; };
+		DC60212A13A67F9A711C3DEE /* DashboardCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6037C3666F6534172CBFA52E /* DashboardCacheTests.swift */; };
+		E052E7EC3FC27F8A98D808AF /* ScoringDomain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5789BF46119A96DC2988CBD4 /* ScoringDomain.swift */; };
+		E07D9C7EEC05F03C1795C3F5 /* StravaAuthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57DEE052081E7AFC073AEA89 /* StravaAuthTests.swift */; };
+		E0943A7ABEAD10DA51E449AF /* AccountMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC80093B7C5F6996DB3DB17B /* AccountMigrationTests.swift */; };
+		E7A821232BE45AC3C2AFAC22 /* StravaTCXBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F25321C5BDAB477E7198BF77 /* StravaTCXBuilder.swift */; };
+		E888D4B2B1D57CB5A31D57F3 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 982236CBED6419BB12B09377 /* Foundation.framework */; };
+		FBAC076C530DACA8B43CE8A5 /* LinkedProgressaUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEE98CC9C33BB52836EAA674 /* LinkedProgressaUITests.swift */; };
+		FDA4E71DBB4AFA261B90B808 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 982236CBED6419BB12B09377 /* Foundation.framework */; };
+		FE96418FCEFD507C35A4EFB6 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F9E114F35834C4C8BDE3CA5 /* APIClient.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		3C7E5C29B57B8BA5B15651CE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B70C4A383415CBE3162D4DCF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D199538F925BDB7489D2A27F;
+			remoteInfo = QuantivitaNative;
+		};
+		778F7FE47D49C8A792AEB289 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B70C4A383415CBE3162D4DCF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D199538F925BDB7489D2A27F;
+			remoteInfo = QuantivitaNative;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0796975A52D16EFD960F1CC6 /* QuantivitaNativeApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = QuantivitaNativeApp.swift; path = App/QuantivitaNativeApp.swift; sourceTree = "<group>"; };
+		091B6B6897D4C9E994F22EC3 /* DashboardCache.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DashboardCache.swift; path = Services/DashboardCache.swift; sourceTree = "<group>"; };
+		0AED0CBDDBA4CCEC1E11607E /* WorkoutFidelityTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkoutFidelityTests.swift; sourceTree = "<group>"; };
+		0B06EABBF4BE144C49C9B0BD /* RootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RootView.swift; path = Views/RootView.swift; sourceTree = "<group>"; };
+		17FFCDF56905A594D53D01FB /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		217EF5B9F8A299D74A545260 /* WorkoutDecodingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkoutDecodingTests.swift; sourceTree = "<group>"; };
+		2226C7BC89E02EDC97489AAD /* ScoringParityTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScoringParityTests.swift; sourceTree = "<group>"; };
+		2E96CE0FF8F77DE279B5B9B3 /* StravaTCXBuilderTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StravaTCXBuilderTests.swift; sourceTree = "<group>"; };
+		38670637FB691A0E6C89D2F6 /* RecoveryScorerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RecoveryScorerTests.swift; sourceTree = "<group>"; };
+		5E1E1F0A0B0C0D0E0F101112 /* SleepSummaryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SleepSummaryTests.swift; sourceTree = "<group>"; };
+		6F2F203A0B0C0D0E0F101213 /* StravaErrorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StravaErrorTests.swift; sourceTree = "<group>"; };
+		3F92093FC16F4E4CAEDF2430 /* StravaAuthService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StravaAuthService.swift; path = Services/StravaAuthService.swift; sourceTree = "<group>"; };
+		3F9E114F35834C4C8BDE3CA5 /* APIClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = APIClient.swift; path = Services/APIClient.swift; sourceTree = "<group>"; };
+		521D6E97198D579137E47AE4 /* RecoveryScorer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RecoveryScorer.swift; path = Scoring/RecoveryScorer.swift; sourceTree = "<group>"; };
+		537D8764E26C0E65A5AEA908 /* QuantivitaNativeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = QuantivitaNativeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5789BF46119A96DC2988CBD4 /* ScoringDomain.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ScoringDomain.swift; path = Scoring/ScoringDomain.swift; sourceTree = "<group>"; };
+		57DEE052081E7AFC073AEA89 /* StravaAuthTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StravaAuthTests.swift; sourceTree = "<group>"; };
+		6037C3666F6534172CBFA52E /* DashboardCacheTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardCacheTests.swift; sourceTree = "<group>"; };
+		6F43B7ECAF15B34336CCE875 /* QuantivitaNative.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QuantivitaNative.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8EA463D2CA9F8AECE9C08E5D /* ProgressaWorkoutLinker.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ProgressaWorkoutLinker.swift; path = Services/ProgressaWorkoutLinker.swift; sourceTree = "<group>"; };
+		982236CBED6419BB12B09377 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		A603DAAF02C69D860A7AFD7B /* WorkoutViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WorkoutViews.swift; path = Views/WorkoutViews.swift; sourceTree = "<group>"; };
+		AA13D6A897E071CD35FBFCE6 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		AC80093B7C5F6996DB3DB17B /* AccountMigrationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccountMigrationTests.swift; sourceTree = "<group>"; };
+		AE955107E75A98599383F26A /* SettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = Views/SettingsView.swift; sourceTree = "<group>"; };
+		B10C8BE875C03E91BDDB9EC1 /* SecureAccountStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SecureAccountStore.swift; path = Services/SecureAccountStore.swift; sourceTree = "<group>"; };
+		B29878363AE5FA57EB112582 /* HealthModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HealthModels.swift; path = Models/HealthModels.swift; sourceTree = "<group>"; };
+		B8459556EA9A10C2A9C9BA35 /* DashboardViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DashboardViews.swift; path = Views/DashboardViews.swift; sourceTree = "<group>"; };
+		B926A1620C6B6A0D6D66984D /* WorkoutFidelity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WorkoutFidelity.swift; path = Services/WorkoutFidelity.swift; sourceTree = "<group>"; };
+		BDE1D05AAEE425695A0875F8 /* ProgressaAuthTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProgressaAuthTests.swift; sourceTree = "<group>"; };
+		C0FCF3C386E488A82C232D76 /* HealthKitService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HealthKitService.swift; path = Services/HealthKitService.swift; sourceTree = "<group>"; };
+		C4E41970A5435ECE8CFDD589 /* AppModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppModel.swift; path = ViewModels/AppModel.swift; sourceTree = "<group>"; };
+		CFD2B7A66D4531E37B4E49D2 /* ProgressaWorkoutLinkerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProgressaWorkoutLinkerTests.swift; sourceTree = "<group>"; };
+		DCCF37E848E84B7B284CA291 /* QuantivitaNativeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = QuantivitaNativeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DEE98CC9C33BB52836EAA674 /* LinkedProgressaUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LinkedProgressaUITests.swift; sourceTree = "<group>"; };
+		E16AA9366F308CD4CE6339B9 /* AppearanceModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppearanceModels.swift; path = Models/AppearanceModels.swift; sourceTree = "<group>"; };
+		E3136AA87E55053B0DCA7B12 /* ProgressaAuthService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ProgressaAuthService.swift; path = Services/ProgressaAuthService.swift; sourceTree = "<group>"; };
+		F25321C5BDAB477E7198BF77 /* StravaTCXBuilder.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StravaTCXBuilder.swift; path = Services/StravaTCXBuilder.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		2D58E606EE5C1998D1C1DAB5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FDA4E71DBB4AFA261B90B808 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8D6E15834DD2840E13FD06CB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5D233D2459CECBE67A2AEDA1 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9FA6B175D9CEAC2325F1579F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E888D4B2B1D57CB5A31D57F3 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		17C2682A5ADF058B94DB344D /* QuantivitaNative */ = {
+			isa = PBXGroup;
+			children = (
+				0796975A52D16EFD960F1CC6 /* QuantivitaNativeApp.swift */,
+				E16AA9366F308CD4CE6339B9 /* AppearanceModels.swift */,
+				B29878363AE5FA57EB112582 /* HealthModels.swift */,
+				521D6E97198D579137E47AE4 /* RecoveryScorer.swift */,
+				5789BF46119A96DC2988CBD4 /* ScoringDomain.swift */,
+				3F9E114F35834C4C8BDE3CA5 /* APIClient.swift */,
+				091B6B6897D4C9E994F22EC3 /* DashboardCache.swift */,
+				C0FCF3C386E488A82C232D76 /* HealthKitService.swift */,
+				E3136AA87E55053B0DCA7B12 /* ProgressaAuthService.swift */,
+				8EA463D2CA9F8AECE9C08E5D /* ProgressaWorkoutLinker.swift */,
+				B10C8BE875C03E91BDDB9EC1 /* SecureAccountStore.swift */,
+				3F92093FC16F4E4CAEDF2430 /* StravaAuthService.swift */,
+				F25321C5BDAB477E7198BF77 /* StravaTCXBuilder.swift */,
+				B926A1620C6B6A0D6D66984D /* WorkoutFidelity.swift */,
+				C4E41970A5435ECE8CFDD589 /* AppModel.swift */,
+				B8459556EA9A10C2A9C9BA35 /* DashboardViews.swift */,
+				0B06EABBF4BE144C49C9B0BD /* RootView.swift */,
+				AE955107E75A98599383F26A /* SettingsView.swift */,
+				A603DAAF02C69D860A7AFD7B /* WorkoutViews.swift */,
+				4012498A578ADC4E760F5511 /* Resources */,
+			);
+			name = QuantivitaNative;
+			path = QuantivitaNative;
+			sourceTree = "<group>";
+		};
+		4012498A578ADC4E760F5511 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				17FFCDF56905A594D53D01FB /* Assets.xcassets */,
+				AA13D6A897E071CD35FBFCE6 /* PrivacyInfo.xcprivacy */,
+			);
+			name = Resources;
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		4A9E0C44D40D17E5B22C8476 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6F43B7ECAF15B34336CCE875 /* QuantivitaNative.app */,
+				537D8764E26C0E65A5AEA908 /* QuantivitaNativeTests.xctest */,
+				DCCF37E848E84B7B284CA291 /* QuantivitaNativeUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		4C79CDF9FE76F0B330DD6755 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				982236CBED6419BB12B09377 /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
+		5D4303ED8D1E0DC1567A1EC7 = {
+			isa = PBXGroup;
+			children = (
+				4A9E0C44D40D17E5B22C8476 /* Products */,
+				D1E4512B20419DA8EB37F346 /* Frameworks */,
+				17C2682A5ADF058B94DB344D /* QuantivitaNative */,
+				87008D41916899ED169EC1D3 /* QuantivitaNativeTests */,
+				AFFB21C273173CBAA6F28D45 /* QuantivitaNativeUITests */,
+			);
+			sourceTree = "<group>";
+		};
+		87008D41916899ED169EC1D3 /* QuantivitaNativeTests */ = {
+			isa = PBXGroup;
+			children = (
+				AC80093B7C5F6996DB3DB17B /* AccountMigrationTests.swift */,
+				6037C3666F6534172CBFA52E /* DashboardCacheTests.swift */,
+				BDE1D05AAEE425695A0875F8 /* ProgressaAuthTests.swift */,
+				CFD2B7A66D4531E37B4E49D2 /* ProgressaWorkoutLinkerTests.swift */,
+				38670637FB691A0E6C89D2F6 /* RecoveryScorerTests.swift */,
+				5E1E1F0A0B0C0D0E0F101112 /* SleepSummaryTests.swift */,
+				6F2F203A0B0C0D0E0F101213 /* StravaErrorTests.swift */,
+				2226C7BC89E02EDC97489AAD /* ScoringParityTests.swift */,
+				57DEE052081E7AFC073AEA89 /* StravaAuthTests.swift */,
+				2E96CE0FF8F77DE279B5B9B3 /* StravaTCXBuilderTests.swift */,
+				217EF5B9F8A299D74A545260 /* WorkoutDecodingTests.swift */,
+				0AED0CBDDBA4CCEC1E11607E /* WorkoutFidelityTests.swift */,
+			);
+			name = QuantivitaNativeTests;
+			path = QuantivitaNativeTests;
+			sourceTree = "<group>";
+		};
+		AFFB21C273173CBAA6F28D45 /* QuantivitaNativeUITests */ = {
+			isa = PBXGroup;
+			children = (
+				DEE98CC9C33BB52836EAA674 /* LinkedProgressaUITests.swift */,
+			);
+			name = QuantivitaNativeUITests;
+			path = QuantivitaNativeUITests;
+			sourceTree = "<group>";
+		};
+		D1E4512B20419DA8EB37F346 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				4C79CDF9FE76F0B330DD6755 /* iOS */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		80D6316C80A5816C8782D4A4 /* QuantivitaNativeUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 75CAD011796E942172EB28B8 /* Build configuration list for PBXNativeTarget "QuantivitaNativeUITests" */;
+			buildPhases = (
+				EF1381D97C436F9BE89F0B95 /* Sources */,
+				8D6E15834DD2840E13FD06CB /* Frameworks */,
+				FEE0B1BB9F19B545788D4549 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				10E5378752C52859F804880E /* PBXTargetDependency */,
+			);
+			name = QuantivitaNativeUITests;
+			productName = QuantivitaNativeUITests;
+			productReference = DCCF37E848E84B7B284CA291 /* QuantivitaNativeUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		D199538F925BDB7489D2A27F /* QuantivitaNative */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A0599035D6D6994C3DDC73FE /* Build configuration list for PBXNativeTarget "QuantivitaNative" */;
+			buildPhases = (
+				D1F221E0FD23BEE57BC139BD /* Sources */,
+				9FA6B175D9CEAC2325F1579F /* Frameworks */,
+				83AE5E1AC1EE80E9C20B8BE8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = QuantivitaNative;
+			productName = QuantivitaNative;
+			productReference = 6F43B7ECAF15B34336CCE875 /* QuantivitaNative.app */;
+			productType = "com.apple.product-type.application";
+		};
+		F4E407536FF2FEFAE00E1719 /* QuantivitaNativeTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 76E57F5CE5FD6F05DCDF396A /* Build configuration list for PBXNativeTarget "QuantivitaNativeTests" */;
+			buildPhases = (
+				B72AF89FE1911EA2783C38C6 /* Sources */,
+				2D58E606EE5C1998D1C1DAB5 /* Frameworks */,
+				5131838F88EBC783C573CC99 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E57119CA4C97A1F548C75C82 /* PBXTargetDependency */,
+			);
+			name = QuantivitaNativeTests;
+			productName = QuantivitaNativeTests;
+			productReference = 537D8764E26C0E65A5AEA908 /* QuantivitaNativeTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B70C4A383415CBE3162D4DCF /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+			};
+			buildConfigurationList = 4A54BCA896967C7C8311E327 /* Build configuration list for PBXProject "QuantivitaNative" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 5D4303ED8D1E0DC1567A1EC7;
+			minimizedProjectReferenceProxies = 0;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 4A9E0C44D40D17E5B22C8476 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D199538F925BDB7489D2A27F /* QuantivitaNative */,
+				F4E407536FF2FEFAE00E1719 /* QuantivitaNativeTests */,
+				80D6316C80A5816C8782D4A4 /* QuantivitaNativeUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		5131838F88EBC783C573CC99 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		83AE5E1AC1EE80E9C20B8BE8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5DE99E1D2D4EAD16395E1D11 /* Assets.xcassets in Resources */,
+				41B644B9E0AFCE2F2AED743D /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FEE0B1BB9F19B545788D4549 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B72AF89FE1911EA2783C38C6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E0943A7ABEAD10DA51E449AF /* AccountMigrationTests.swift in Sources */,
+				DC60212A13A67F9A711C3DEE /* DashboardCacheTests.swift in Sources */,
+				8EFAFD08E890EEC7D4B24550 /* ProgressaAuthTests.swift in Sources */,
+				427C12E0FF3475C29A17316F /* ProgressaWorkoutLinkerTests.swift in Sources */,
+				AB7EF7D8C57CC6BABAB8E44C /* RecoveryScorerTests.swift in Sources */,
+				5B1D2C3D4E5F60718293A4B5 /* SleepSummaryTests.swift in Sources */,
+				6C2E3D4E5F60718293A4B5C6 /* StravaErrorTests.swift in Sources */,
+				C30E2EC3DD56E02EB128FD5D /* ScoringParityTests.swift in Sources */,
+				E07D9C7EEC05F03C1795C3F5 /* StravaAuthTests.swift in Sources */,
+				1E6D16375480C96469589CDB /* StravaTCXBuilderTests.swift in Sources */,
+				298D18BD522CA0E72A30F750 /* WorkoutDecodingTests.swift in Sources */,
+				ACFB7CEAE580E8E8F1931DBC /* WorkoutFidelityTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D1F221E0FD23BEE57BC139BD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				65DA66D21B96402624FAE75C /* QuantivitaNativeApp.swift in Sources */,
+				6CF953A35A55FDDAAA3C667D /* AppearanceModels.swift in Sources */,
+				AE09EFE694F4CC3C4B49B963 /* HealthModels.swift in Sources */,
+				8D456E1A59FE381022266D0B /* RecoveryScorer.swift in Sources */,
+				E052E7EC3FC27F8A98D808AF /* ScoringDomain.swift in Sources */,
+				FE96418FCEFD507C35A4EFB6 /* APIClient.swift in Sources */,
+				42427DFDA0660315A4D1C2F3 /* DashboardCache.swift in Sources */,
+				2750B5C6BCCB3471EF1249FD /* HealthKitService.swift in Sources */,
+				7B5B6AFCABDA80BE68C735A7 /* ProgressaAuthService.swift in Sources */,
+				0A51256F9041945A6FE0220E /* ProgressaWorkoutLinker.swift in Sources */,
+				A4F065D525743262A32201D9 /* SecureAccountStore.swift in Sources */,
+				063580470B22683824FBD6F0 /* StravaAuthService.swift in Sources */,
+				E7A821232BE45AC3C2AFAC22 /* StravaTCXBuilder.swift in Sources */,
+				CC4300C994ACA973F25B4194 /* WorkoutFidelity.swift in Sources */,
+				5667E4105C46075D76C2DBEF /* AppModel.swift in Sources */,
+				64A184829D70008F1715E462 /* DashboardViews.swift in Sources */,
+				6ECD42D87FE9D93036D5EE00 /* RootView.swift in Sources */,
+				3A12C1A1D41C098996FECF2A /* SettingsView.swift in Sources */,
+				1931F3B74DDE920DA5767F68 /* WorkoutViews.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EF1381D97C436F9BE89F0B95 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FBAC076C530DACA8B43CE8A5 /* LinkedProgressaUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		10E5378752C52859F804880E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = QuantivitaNative;
+			target = D199538F925BDB7489D2A27F /* QuantivitaNative */;
+			targetProxy = 3C7E5C29B57B8BA5B15651CE /* PBXContainerItemProxy */;
+		};
+		E57119CA4C97A1F548C75C82 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = QuantivitaNative;
+			target = D199538F925BDB7489D2A27F /* QuantivitaNative */;
+			targetProxy = 778F7FE47D49C8A792AEB289 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		3F045156C3E8A1CBA38895E2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGNING_ALLOWED = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bryandijkh.quantivita.native-ui-tests";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TEST_TARGET_NAME = QuantivitaNative;
+			};
+			name = Debug;
+		};
+		56737A5F8915A1EB9B13AA7A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGNING_ALLOWED = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bryandijkh.quantivita.native-tests";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/QuantivitaNative.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/QuantivitaNative";
+			};
+			name = Debug;
+		};
+		768B9D2687DF4E0476DB0267 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		77B50E881A72F797A3160E44 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGNING_ALLOWED = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bryandijkh.quantivita.native-tests";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/QuantivitaNative.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/QuantivitaNative";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		8845D0D1033948789FC2DFA7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = QuantivitaNative/Resources/QuantivitaNative.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 85RT3VH5D8;
+				INFOPLIST_FILE = QuantivitaNative/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.bryandijkh.quantivita;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B967329D395EED0F9070FE27 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGNING_ALLOWED = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bryandijkh.quantivita.native-ui-tests";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TEST_TARGET_NAME = QuantivitaNative;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		E3E080C9C8492A9FF55F10F4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = QuantivitaNative/Resources/QuantivitaNative.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 85RT3VH5D8;
+				INFOPLIST_FILE = QuantivitaNative/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.bryandijkh.quantivita;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		EE56D13BD375D9842E20A5D4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4A54BCA896967C7C8311E327 /* Build configuration list for PBXProject "QuantivitaNative" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EE56D13BD375D9842E20A5D4 /* Debug */,
+				768B9D2687DF4E0476DB0267 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		75CAD011796E942172EB28B8 /* Build configuration list for PBXNativeTarget "QuantivitaNativeUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B967329D395EED0F9070FE27 /* Release */,
+				3F045156C3E8A1CBA38895E2 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		76E57F5CE5FD6F05DCDF396A /* Build configuration list for PBXNativeTarget "QuantivitaNativeTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				77B50E881A72F797A3160E44 /* Release */,
+				56737A5F8915A1EB9B13AA7A /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A0599035D6D6994C3DDC73FE /* Build configuration list for PBXNativeTarget "QuantivitaNative" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E3E080C9C8492A9FF55F10F4 /* Release */,
+				8845D0D1033948789FC2DFA7 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = B70C4A383415CBE3162D4DCF /* Project object */;
+}

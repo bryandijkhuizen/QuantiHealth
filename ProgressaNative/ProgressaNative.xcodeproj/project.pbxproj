@@ -1,0 +1,676 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		03AEED05BEEB864C400C3586 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 604D6CDDDF933D0A01FAF530 /* PrivacyInfo.xcprivacy */; };
+		04C28B4F7C8688BAA1BC01B1 /* AppearanceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC47C6342BA2C053348B1527 /* AppearanceModels.swift */; };
+		0C29BB08DFB0D61056D4803E /* AvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AE0E6C787837528264C9828 /* AvatarView.swift */; };
+		0C8D5DD41E69174837C46EDD /* NotificationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09CF71AF87B4244BB809C0EC /* NotificationModels.swift */; };
+		11353DEBB29CE4F16DCA4D1B /* RoutineService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58618628FE30A19BFC15FCBC /* RoutineService.swift */; };
+		1482CA7568F6632B41DF43C1 /* WorkoutAPIContractTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67DC5E4CEA798B23728F42A3 /* WorkoutAPIContractTests.swift */; };
+		1DD1B3CF2CB029E80AD48554 /* SocialModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 018FC36AEC6CE80879C5FA16 /* SocialModel.swift */; };
+		1F2773101744498DD9B256F6 /* SocialViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59B10F2F71DA857D402F9652 /* SocialViews.swift */; };
+		1FBB25C407EB01DBEF113C89 /* NutritionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF4C52BC883ADF4DB938F728 /* NutritionModel.swift */; };
+		23AC87B599ACCE2B975D9E98 /* SupplementReminderScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51C3D08003B1958EA6080463 /* SupplementReminderScheduler.swift */; };
+		36D9BA0E4C3318ADDE2B3978 /* WorkoutSliceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 165E7C8D5DDD92FB7F1B56AA /* WorkoutSliceTests.swift */; };
+		407E3F2C93BC9BB5A1ED50AA /* StatsMeasurementsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF25DC073045C023CEE513C7 /* StatsMeasurementsTests.swift */; };
+		4946962812287812218B48E6 /* NutritionViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F74A3CF2BBB89B95307AFD8B /* NutritionViews.swift */; };
+		4C198869014A03DF9C1FBEF8 /* StatsMeasurementsViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F2A9B99E15DA0E4C98CAD16 /* StatsMeasurementsViews.swift */; };
+		4F598BAFF376F4977518C83B /* HealthMetadataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 041EE1AD49B8BFAD748A7CF4 /* HealthMetadataService.swift */; };
+		50B0B14034B9AE1A5043ACA7 /* NutritionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAF6160CD01936F7B75CD94 /* NutritionStore.swift */; };
+		52555BEA422D9BD17DCF5870 /* HealthViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A500DB9AD71C567F936B1FE /* HealthViews.swift */; };
+		54C392AB1196F90ED931E3D8 /* QuantivitaConnectTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 545829FA141B9A1E1F4E69B9 /* QuantivitaConnectTests.swift */; };
+		54E8B7E03B7E46052EB14B97 /* AppearanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D23F7DAE2AD39F23C289D31 /* AppearanceView.swift */; };
+		5653F318105C9DB06AC569EF /* NutritionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF99ACCADF65FC065BEFAA24 /* NutritionModels.swift */; };
+		5F64FA9C14C928E077F348D8 /* NotificationViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00ECB5F570529EFD6F486B1C /* NotificationViews.swift */; };
+		6568CAB5EB2524A2F2976F5F /* ProgressaNativeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F050EBD46CFC71151B5935BF /* ProgressaNativeApp.swift */; };
+		694747B65A0E17280F3BB09B /* NotificationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3E4009917002A73679B0019 /* NotificationModel.swift */; };
+		6F1EABD27D3EF03945BE88BC /* AvatarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4265F05575A2F9BF062C212 /* AvatarService.swift */; };
+		72697AABC632DE78C7379666 /* StatsMeasurementsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E6723549716056241303506 /* StatsMeasurementsService.swift */; };
+		73DC6339212F0C7A3445A57D /* RoutineViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC85A92630A683858A3BB920 /* RoutineViews.swift */; };
+		75C5430E7A8A44E616406452 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A47E744DD725DDD7008B0173 /* Assets.xcassets */; };
+		7609FF89B9D15D8D4F05703C /* ProgressaRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57B8421EFC7AE67F1CCC96CB /* ProgressaRootView.swift */; };
+		79891D6951E68AA67EC935FA /* SocialFeedContractTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38F5BF7CF9CA739FA9261AA4 /* SocialFeedContractTests.swift */; };
+		7AA09A14D7D6DB6966F9E186 /* ProgressaModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38F633E5F83FD62A1AD4D425 /* ProgressaModel.swift */; };
+		7E0B7D49702ED7F9375AA677 /* RoutineModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8E233B827AC44BB0D07BCA0 /* RoutineModels.swift */; };
+		8A447C5B891CA9F1452A5723 /* WorkoutCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BEBC6C59FB69DCFE9210F44 /* WorkoutCache.swift */; };
+		8CAE0416C6D3438D9E08A92D /* SocialModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7CF3C28FB67C1C2AB15EAA9 /* SocialModels.swift */; };
+		8E9821B3A7BB992CF4D52B38 /* ProgressaModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8761E2BC0D987F32692C650B /* ProgressaModels.swift */; };
+		999A59D2C5C43F6167F4B9E5 /* ProgressaHealthKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72F050F5AE3B4A30DC4C4870 /* ProgressaHealthKitService.swift */; };
+		9BC208E81C0D9AD7C5A99D3B /* NutritionClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9B18B597FF10B7F5BF27CE1 /* NutritionClient.swift */; };
+		9CA569C45B2830F08A1DD709 /* SocialCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = C17744028DC505D6DB47DF9E /* SocialCache.swift */; };
+		9DD2FC5B0D199F16B24740A4 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49157F8A015C9E393BCEC7F0 /* Foundation.framework */; };
+		A9792F92687D1D7F23F3FBA6 /* ProgressaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BAFB8C16F3604F7F56C8B59 /* ProgressaClient.swift */; };
+		B8C9F05C6640CD7ED01F63F9 /* AuthProfileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6052AF080634CE7597B5A90 /* AuthProfileTests.swift */; };
+		C7E03FD9D321BB3CA430DA18 /* HealthModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69D72C8B97FD436DBA529C5B /* HealthModels.swift */; };
+		CFBAD721FE13FE63C34D3B1D /* ProgressaOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51D4088E3C9859EFECC19A25 /* ProgressaOnboardingView.swift */; };
+		D4DB69419D5934CACA2A0E09 /* NotificationSliceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C223812B2673A916D9E374B /* NotificationSliceTests.swift */; };
+		DD235213FAE1336037A8E8B2 /* CustomExercisesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 785F9F4C5DEE41CCA6D955FA /* CustomExercisesView.swift */; };
+		E145B579BA87DDDDC57B25AE /* NutritionSliceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D985F858C26AA05D0F58E8AE /* NutritionSliceTests.swift */; };
+		E28B5360A9F255ED69384314 /* SocialSliceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 873F7D3E886451E947647EE2 /* SocialSliceTests.swift */; };
+		E695D1B7273D35103399C272 /* AvatarServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65A3DE4A9702D7D659394C5A /* AvatarServiceTests.swift */; };
+		E754BED48FB6582BE2E3611E /* HealthMetadataTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A1FDC623DB6D4A4DAA1B7F /* HealthMetadataTests.swift */; };
+		EA10F77B4164BE6BA7D8BBC3 /* SocialClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9C7EFECDDAFD404D5E58889 /* SocialClient.swift */; };
+		EB79FCFE1B812E2E8934D54B /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ECF7FA115EA0E9D86628E1E /* NotificationService.swift */; };
+		F7B252D991B5568EEA43F8BB /* RoutineSliceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD776AE790B0F2E794F4D00 /* RoutineSliceTests.swift */; };
+		FE715BF8D6F87154A96E9A08 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49157F8A015C9E393BCEC7F0 /* Foundation.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		DFC503C4BEF0606AD8C4705E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EA7CF347B733DC1F4CA3BE5C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F215467E7AD360EDE994445A;
+			remoteInfo = ProgressaNative;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		00ECB5F570529EFD6F486B1C /* NotificationViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NotificationViews.swift; path = Views/NotificationViews.swift; sourceTree = "<group>"; };
+		018FC36AEC6CE80879C5FA16 /* SocialModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SocialModel.swift; path = ViewModels/SocialModel.swift; sourceTree = "<group>"; };
+		041EE1AD49B8BFAD748A7CF4 /* HealthMetadataService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HealthMetadataService.swift; path = Services/HealthMetadataService.swift; sourceTree = "<group>"; };
+		09CF71AF87B4244BB809C0EC /* NotificationModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NotificationModels.swift; path = Models/NotificationModels.swift; sourceTree = "<group>"; };
+		165E7C8D5DDD92FB7F1B56AA /* WorkoutSliceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkoutSliceTests.swift; sourceTree = "<group>"; };
+		1C223812B2673A916D9E374B /* NotificationSliceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NotificationSliceTests.swift; sourceTree = "<group>"; };
+		38F5BF7CF9CA739FA9261AA4 /* SocialFeedContractTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SocialFeedContractTests.swift; sourceTree = "<group>"; };
+		38F633E5F83FD62A1AD4D425 /* ProgressaModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ProgressaModel.swift; path = ViewModels/ProgressaModel.swift; sourceTree = "<group>"; };
+		3AE0E6C787837528264C9828 /* AvatarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AvatarView.swift; path = Views/AvatarView.swift; sourceTree = "<group>"; };
+		3D23F7DAE2AD39F23C289D31 /* AppearanceView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppearanceView.swift; path = Views/AppearanceView.swift; sourceTree = "<group>"; };
+		49157F8A015C9E393BCEC7F0 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		4E6723549716056241303506 /* StatsMeasurementsService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StatsMeasurementsService.swift; path = Services/StatsMeasurementsService.swift; sourceTree = "<group>"; };
+		4ECF7FA115EA0E9D86628E1E /* NotificationService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NotificationService.swift; path = Services/NotificationService.swift; sourceTree = "<group>"; };
+		4F2A9B99E15DA0E4C98CAD16 /* StatsMeasurementsViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StatsMeasurementsViews.swift; path = Views/StatsMeasurementsViews.swift; sourceTree = "<group>"; };
+		4F8FBAB7E2BE3170B4C16BA2 /* ProgressaNativeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ProgressaNativeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		51C3D08003B1958EA6080463 /* SupplementReminderScheduler.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SupplementReminderScheduler.swift; path = Services/SupplementReminderScheduler.swift; sourceTree = "<group>"; };
+		51D4088E3C9859EFECC19A25 /* ProgressaOnboardingView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ProgressaOnboardingView.swift; path = Views/ProgressaOnboardingView.swift; sourceTree = "<group>"; };
+		545829FA141B9A1E1F4E69B9 /* QuantivitaConnectTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = QuantivitaConnectTests.swift; sourceTree = "<group>"; };
+		57B8421EFC7AE67F1CCC96CB /* ProgressaRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ProgressaRootView.swift; path = Views/ProgressaRootView.swift; sourceTree = "<group>"; };
+		58618628FE30A19BFC15FCBC /* RoutineService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RoutineService.swift; path = Services/RoutineService.swift; sourceTree = "<group>"; };
+		59B10F2F71DA857D402F9652 /* SocialViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SocialViews.swift; path = Views/SocialViews.swift; sourceTree = "<group>"; };
+		5BAFB8C16F3604F7F56C8B59 /* ProgressaClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ProgressaClient.swift; path = Services/ProgressaClient.swift; sourceTree = "<group>"; };
+		604D6CDDDF933D0A01FAF530 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		65A3DE4A9702D7D659394C5A /* AvatarServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AvatarServiceTests.swift; sourceTree = "<group>"; };
+		67D124A1DF152BCEC41A484E /* ProgressaNative.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = ProgressaNative.xcconfig; sourceTree = "<group>"; };
+		67DC5E4CEA798B23728F42A3 /* WorkoutAPIContractTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkoutAPIContractTests.swift; sourceTree = "<group>"; };
+		69D72C8B97FD436DBA529C5B /* HealthModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HealthModels.swift; path = Models/HealthModels.swift; sourceTree = "<group>"; };
+		6A500DB9AD71C567F936B1FE /* HealthViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HealthViews.swift; path = Views/HealthViews.swift; sourceTree = "<group>"; };
+		72F050F5AE3B4A30DC4C4870 /* ProgressaHealthKitService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ProgressaHealthKitService.swift; path = Services/ProgressaHealthKitService.swift; sourceTree = "<group>"; };
+		785F9F4C5DEE41CCA6D955FA /* CustomExercisesView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CustomExercisesView.swift; path = Views/CustomExercisesView.swift; sourceTree = "<group>"; };
+		873F7D3E886451E947647EE2 /* SocialSliceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SocialSliceTests.swift; sourceTree = "<group>"; };
+		8761E2BC0D987F32692C650B /* ProgressaModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ProgressaModels.swift; path = Models/ProgressaModels.swift; sourceTree = "<group>"; };
+		8BEBC6C59FB69DCFE9210F44 /* WorkoutCache.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WorkoutCache.swift; path = Services/WorkoutCache.swift; sourceTree = "<group>"; };
+		9EA6653B96B0CD80D6103F73 /* ProgressaNative.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ProgressaNative.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9FD776AE790B0F2E794F4D00 /* RoutineSliceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RoutineSliceTests.swift; sourceTree = "<group>"; };
+		A3E4009917002A73679B0019 /* NotificationModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NotificationModel.swift; path = ViewModels/NotificationModel.swift; sourceTree = "<group>"; };
+		A47E744DD725DDD7008B0173 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A7CF3C28FB67C1C2AB15EAA9 /* SocialModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SocialModels.swift; path = Models/SocialModels.swift; sourceTree = "<group>"; };
+		AF99ACCADF65FC065BEFAA24 /* NutritionModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NutritionModels.swift; path = Models/NutritionModels.swift; sourceTree = "<group>"; };
+		B8E233B827AC44BB0D07BCA0 /* RoutineModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RoutineModels.swift; path = Models/RoutineModels.swift; sourceTree = "<group>"; };
+		B9B18B597FF10B7F5BF27CE1 /* NutritionClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NutritionClient.swift; path = Services/NutritionClient.swift; sourceTree = "<group>"; };
+		BF25DC073045C023CEE513C7 /* StatsMeasurementsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StatsMeasurementsTests.swift; sourceTree = "<group>"; };
+		C17744028DC505D6DB47DF9E /* SocialCache.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SocialCache.swift; path = Services/SocialCache.swift; sourceTree = "<group>"; };
+		C4265F05575A2F9BF062C212 /* AvatarService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AvatarService.swift; path = Services/AvatarService.swift; sourceTree = "<group>"; };
+		CC47C6342BA2C053348B1527 /* AppearanceModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppearanceModels.swift; path = Models/AppearanceModels.swift; sourceTree = "<group>"; };
+		CC85A92630A683858A3BB920 /* RoutineViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RoutineViews.swift; path = Views/RoutineViews.swift; sourceTree = "<group>"; };
+		D985F858C26AA05D0F58E8AE /* NutritionSliceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NutritionSliceTests.swift; sourceTree = "<group>"; };
+		DDAF6160CD01936F7B75CD94 /* NutritionStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NutritionStore.swift; path = Services/NutritionStore.swift; sourceTree = "<group>"; };
+		DF4C52BC883ADF4DB938F728 /* NutritionModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NutritionModel.swift; path = ViewModels/NutritionModel.swift; sourceTree = "<group>"; };
+		E4A1FDC623DB6D4A4DAA1B7F /* HealthMetadataTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HealthMetadataTests.swift; sourceTree = "<group>"; };
+		E9C7EFECDDAFD404D5E58889 /* SocialClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SocialClient.swift; path = Services/SocialClient.swift; sourceTree = "<group>"; };
+		F050EBD46CFC71151B5935BF /* ProgressaNativeApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ProgressaNativeApp.swift; path = App/ProgressaNativeApp.swift; sourceTree = "<group>"; };
+		F6052AF080634CE7597B5A90 /* AuthProfileTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AuthProfileTests.swift; sourceTree = "<group>"; };
+		F74A3CF2BBB89B95307AFD8B /* NutritionViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NutritionViews.swift; path = Views/NutritionViews.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		6140C84B760DF34EB0D28219 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FE715BF8D6F87154A96E9A08 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		75B73229B79122D0234BDC95 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9DD2FC5B0D199F16B24740A4 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0B83267C4FF8BD5DDEDAA32C /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				49157F8A015C9E393BCEC7F0 /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
+		0BBB67CC3B98FF981D81FEA5 /* ProgressaNativeTests */ = {
+			isa = PBXGroup;
+			children = (
+				F6052AF080634CE7597B5A90 /* AuthProfileTests.swift */,
+				65A3DE4A9702D7D659394C5A /* AvatarServiceTests.swift */,
+				E4A1FDC623DB6D4A4DAA1B7F /* HealthMetadataTests.swift */,
+				1C223812B2673A916D9E374B /* NotificationSliceTests.swift */,
+				D985F858C26AA05D0F58E8AE /* NutritionSliceTests.swift */,
+				545829FA141B9A1E1F4E69B9 /* QuantivitaConnectTests.swift */,
+				9FD776AE790B0F2E794F4D00 /* RoutineSliceTests.swift */,
+				38F5BF7CF9CA739FA9261AA4 /* SocialFeedContractTests.swift */,
+				873F7D3E886451E947647EE2 /* SocialSliceTests.swift */,
+				BF25DC073045C023CEE513C7 /* StatsMeasurementsTests.swift */,
+				67DC5E4CEA798B23728F42A3 /* WorkoutAPIContractTests.swift */,
+				165E7C8D5DDD92FB7F1B56AA /* WorkoutSliceTests.swift */,
+			);
+			name = ProgressaNativeTests;
+			path = ProgressaNativeTests;
+			sourceTree = "<group>";
+		};
+		3D2929C36329BBDA282C1516 /* Configuration */ = {
+			isa = PBXGroup;
+			children = (
+				67D124A1DF152BCEC41A484E /* ProgressaNative.xcconfig */,
+			);
+			name = Configuration;
+			path = Configuration;
+			sourceTree = "<group>";
+		};
+		4696F59EA276CCEBDF49BBFC /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				0B83267C4FF8BD5DDEDAA32C /* iOS */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		697BD0F24936F9711D3CA2A3 /* ProgressaNative */ = {
+			isa = PBXGroup;
+			children = (
+				F050EBD46CFC71151B5935BF /* ProgressaNativeApp.swift */,
+				CC47C6342BA2C053348B1527 /* AppearanceModels.swift */,
+				69D72C8B97FD436DBA529C5B /* HealthModels.swift */,
+				09CF71AF87B4244BB809C0EC /* NotificationModels.swift */,
+				AF99ACCADF65FC065BEFAA24 /* NutritionModels.swift */,
+				8761E2BC0D987F32692C650B /* ProgressaModels.swift */,
+				B8E233B827AC44BB0D07BCA0 /* RoutineModels.swift */,
+				A7CF3C28FB67C1C2AB15EAA9 /* SocialModels.swift */,
+				C4265F05575A2F9BF062C212 /* AvatarService.swift */,
+				041EE1AD49B8BFAD748A7CF4 /* HealthMetadataService.swift */,
+				4ECF7FA115EA0E9D86628E1E /* NotificationService.swift */,
+				B9B18B597FF10B7F5BF27CE1 /* NutritionClient.swift */,
+				DDAF6160CD01936F7B75CD94 /* NutritionStore.swift */,
+				5BAFB8C16F3604F7F56C8B59 /* ProgressaClient.swift */,
+				72F050F5AE3B4A30DC4C4870 /* ProgressaHealthKitService.swift */,
+				58618628FE30A19BFC15FCBC /* RoutineService.swift */,
+				C17744028DC505D6DB47DF9E /* SocialCache.swift */,
+				E9C7EFECDDAFD404D5E58889 /* SocialClient.swift */,
+				4E6723549716056241303506 /* StatsMeasurementsService.swift */,
+				51C3D08003B1958EA6080463 /* SupplementReminderScheduler.swift */,
+				8BEBC6C59FB69DCFE9210F44 /* WorkoutCache.swift */,
+				A3E4009917002A73679B0019 /* NotificationModel.swift */,
+				DF4C52BC883ADF4DB938F728 /* NutritionModel.swift */,
+				38F633E5F83FD62A1AD4D425 /* ProgressaModel.swift */,
+				018FC36AEC6CE80879C5FA16 /* SocialModel.swift */,
+				3D23F7DAE2AD39F23C289D31 /* AppearanceView.swift */,
+				3AE0E6C787837528264C9828 /* AvatarView.swift */,
+				785F9F4C5DEE41CCA6D955FA /* CustomExercisesView.swift */,
+				6A500DB9AD71C567F936B1FE /* HealthViews.swift */,
+				00ECB5F570529EFD6F486B1C /* NotificationViews.swift */,
+				F74A3CF2BBB89B95307AFD8B /* NutritionViews.swift */,
+				51D4088E3C9859EFECC19A25 /* ProgressaOnboardingView.swift */,
+				57B8421EFC7AE67F1CCC96CB /* ProgressaRootView.swift */,
+				CC85A92630A683858A3BB920 /* RoutineViews.swift */,
+				59B10F2F71DA857D402F9652 /* SocialViews.swift */,
+				4F2A9B99E15DA0E4C98CAD16 /* StatsMeasurementsViews.swift */,
+				8A8A3FED0E5374AC275B000B /* Resources */,
+			);
+			name = ProgressaNative;
+			path = ProgressaNative;
+			sourceTree = "<group>";
+		};
+		8A8A3FED0E5374AC275B000B /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				A47E744DD725DDD7008B0173 /* Assets.xcassets */,
+				604D6CDDDF933D0A01FAF530 /* PrivacyInfo.xcprivacy */,
+			);
+			name = Resources;
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		B474F11A15F5DC30D95F159A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				9EA6653B96B0CD80D6103F73 /* ProgressaNative.app */,
+				4F8FBAB7E2BE3170B4C16BA2 /* ProgressaNativeTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		BCE4B393C91ECADE039CA70B = {
+			isa = PBXGroup;
+			children = (
+				B474F11A15F5DC30D95F159A /* Products */,
+				4696F59EA276CCEBDF49BBFC /* Frameworks */,
+				3D2929C36329BBDA282C1516 /* Configuration */,
+				697BD0F24936F9711D3CA2A3 /* ProgressaNative */,
+				0BBB67CC3B98FF981D81FEA5 /* ProgressaNativeTests */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		7AECFECFE80CFF1237F43536 /* ProgressaNativeTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 605B97B403856045D8D98C1D /* Build configuration list for PBXNativeTarget "ProgressaNativeTests" */;
+			buildPhases = (
+				9D08C42298509388A7454348 /* Sources */,
+				75B73229B79122D0234BDC95 /* Frameworks */,
+				26C4661F205F9381A4D94326 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				2FCBAAE2F3D5CB9328225617 /* PBXTargetDependency */,
+			);
+			name = ProgressaNativeTests;
+			productName = ProgressaNativeTests;
+			productReference = 4F8FBAB7E2BE3170B4C16BA2 /* ProgressaNativeTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		F215467E7AD360EDE994445A /* ProgressaNative */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = ED987438BD1F629978FDA28C /* Build configuration list for PBXNativeTarget "ProgressaNative" */;
+			buildPhases = (
+				F47BE42D0E6E2767A547BC7E /* Sources */,
+				6140C84B760DF34EB0D28219 /* Frameworks */,
+				754DFA854A0F187E8A82D944 /* Resources */,
+				A8E423CA03115FE769197CC5 /* Validate native configuration */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ProgressaNative;
+			productName = ProgressaNative;
+			productReference = 9EA6653B96B0CD80D6103F73 /* ProgressaNative.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		EA7CF347B733DC1F4CA3BE5C /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+			};
+			buildConfigurationList = CE6A35056ED2174FB3B173CA /* Build configuration list for PBXProject "ProgressaNative" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = BCE4B393C91ECADE039CA70B;
+			minimizedProjectReferenceProxies = 0;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = B474F11A15F5DC30D95F159A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				F215467E7AD360EDE994445A /* ProgressaNative */,
+				7AECFECFE80CFF1237F43536 /* ProgressaNativeTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		26C4661F205F9381A4D94326 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		754DFA854A0F187E8A82D944 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				75C5430E7A8A44E616406452 /* Assets.xcassets in Resources */,
+				03AEED05BEEB864C400C3586 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		A8E423CA03115FE769197CC5 /* Validate native configuration */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Validate native configuration";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ -z \"${SUPABASE_ANON_KEY:-}\" ] || [ -z \"${PROGRESSA_SUPABASE_URL:-}\" ] || [ -z \"${PROGRESSA_CONNECT_URL:-}\" ]; then\n  echo \"error: Progressa native backend configuration is missing\" >&2\n  exit 1\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		9D08C42298509388A7454348 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B8C9F05C6640CD7ED01F63F9 /* AuthProfileTests.swift in Sources */,
+				E695D1B7273D35103399C272 /* AvatarServiceTests.swift in Sources */,
+				E754BED48FB6582BE2E3611E /* HealthMetadataTests.swift in Sources */,
+				D4DB69419D5934CACA2A0E09 /* NotificationSliceTests.swift in Sources */,
+				E145B579BA87DDDDC57B25AE /* NutritionSliceTests.swift in Sources */,
+				54C392AB1196F90ED931E3D8 /* QuantivitaConnectTests.swift in Sources */,
+				F7B252D991B5568EEA43F8BB /* RoutineSliceTests.swift in Sources */,
+				79891D6951E68AA67EC935FA /* SocialFeedContractTests.swift in Sources */,
+				E28B5360A9F255ED69384314 /* SocialSliceTests.swift in Sources */,
+				407E3F2C93BC9BB5A1ED50AA /* StatsMeasurementsTests.swift in Sources */,
+				1482CA7568F6632B41DF43C1 /* WorkoutAPIContractTests.swift in Sources */,
+				36D9BA0E4C3318ADDE2B3978 /* WorkoutSliceTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F47BE42D0E6E2767A547BC7E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6568CAB5EB2524A2F2976F5F /* ProgressaNativeApp.swift in Sources */,
+				04C28B4F7C8688BAA1BC01B1 /* AppearanceModels.swift in Sources */,
+				C7E03FD9D321BB3CA430DA18 /* HealthModels.swift in Sources */,
+				0C8D5DD41E69174837C46EDD /* NotificationModels.swift in Sources */,
+				5653F318105C9DB06AC569EF /* NutritionModels.swift in Sources */,
+				8E9821B3A7BB992CF4D52B38 /* ProgressaModels.swift in Sources */,
+				7E0B7D49702ED7F9375AA677 /* RoutineModels.swift in Sources */,
+				8CAE0416C6D3438D9E08A92D /* SocialModels.swift in Sources */,
+				6F1EABD27D3EF03945BE88BC /* AvatarService.swift in Sources */,
+				4F598BAFF376F4977518C83B /* HealthMetadataService.swift in Sources */,
+				EB79FCFE1B812E2E8934D54B /* NotificationService.swift in Sources */,
+				9BC208E81C0D9AD7C5A99D3B /* NutritionClient.swift in Sources */,
+				50B0B14034B9AE1A5043ACA7 /* NutritionStore.swift in Sources */,
+				A9792F92687D1D7F23F3FBA6 /* ProgressaClient.swift in Sources */,
+				999A59D2C5C43F6167F4B9E5 /* ProgressaHealthKitService.swift in Sources */,
+				11353DEBB29CE4F16DCA4D1B /* RoutineService.swift in Sources */,
+				9CA569C45B2830F08A1DD709 /* SocialCache.swift in Sources */,
+				EA10F77B4164BE6BA7D8BBC3 /* SocialClient.swift in Sources */,
+				72697AABC632DE78C7379666 /* StatsMeasurementsService.swift in Sources */,
+				23AC87B599ACCE2B975D9E98 /* SupplementReminderScheduler.swift in Sources */,
+				8A447C5B891CA9F1452A5723 /* WorkoutCache.swift in Sources */,
+				694747B65A0E17280F3BB09B /* NotificationModel.swift in Sources */,
+				1FBB25C407EB01DBEF113C89 /* NutritionModel.swift in Sources */,
+				7AA09A14D7D6DB6966F9E186 /* ProgressaModel.swift in Sources */,
+				1DD1B3CF2CB029E80AD48554 /* SocialModel.swift in Sources */,
+				54E8B7E03B7E46052EB14B97 /* AppearanceView.swift in Sources */,
+				0C29BB08DFB0D61056D4803E /* AvatarView.swift in Sources */,
+				DD235213FAE1336037A8E8B2 /* CustomExercisesView.swift in Sources */,
+				52555BEA422D9BD17DCF5870 /* HealthViews.swift in Sources */,
+				5F64FA9C14C928E077F348D8 /* NotificationViews.swift in Sources */,
+				4946962812287812218B48E6 /* NutritionViews.swift in Sources */,
+				CFBAD721FE13FE63C34D3B1D /* ProgressaOnboardingView.swift in Sources */,
+				7609FF89B9D15D8D4F05703C /* ProgressaRootView.swift in Sources */,
+				73DC6339212F0C7A3445A57D /* RoutineViews.swift in Sources */,
+				1F2773101744498DD9B256F6 /* SocialViews.swift in Sources */,
+				4C198869014A03DF9C1FBEF8 /* StatsMeasurementsViews.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		2FCBAAE2F3D5CB9328225617 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = ProgressaNative;
+			target = F215467E7AD360EDE994445A /* ProgressaNative */;
+			targetProxy = DFC503C4BEF0606AD8C4705E /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		2BB91E12EEF03F80DD3A3421 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		54360E39C7E94890A9052EDC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		80DA6EE726A4EE672963C4C3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 67D124A1DF152BCEC41A484E /* ProgressaNative.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = ProgressaNative/Resources/ProgressaNative.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 85RT3VH5D8;
+				INFOPLIST_FILE = ProgressaNative/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.bryandijkh.progressa;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		933788F513ACC1D36AAFBDE0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGNING_ALLOWED = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bryandijkh.progressa.native-tests";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ProgressaNative.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ProgressaNative";
+			};
+			name = Debug;
+		};
+		CEB7C1A628616C9E22629675 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGNING_ALLOWED = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.bryandijkh.progressa.native-tests";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ProgressaNative.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ProgressaNative";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		EBC8CE2B7E3E080ADF450095 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 67D124A1DF152BCEC41A484E /* ProgressaNative.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = ProgressaNative/Resources/ProgressaNative.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 85RT3VH5D8;
+				INFOPLIST_FILE = ProgressaNative/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.bryandijkh.progressa;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		605B97B403856045D8D98C1D /* Build configuration list for PBXNativeTarget "ProgressaNativeTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CEB7C1A628616C9E22629675 /* Release */,
+				933788F513ACC1D36AAFBDE0 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CE6A35056ED2174FB3B173CA /* Build configuration list for PBXProject "ProgressaNative" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2BB91E12EEF03F80DD3A3421 /* Debug */,
+				54360E39C7E94890A9052EDC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		ED987438BD1F629978FDA28C /* Build configuration list for PBXNativeTarget "ProgressaNative" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				80DA6EE726A4EE672963C4C3 /* Release */,
+				EBC8CE2B7E3E080ADF450095 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = EA7CF347B733DC1F4CA3BE5C /* Project object */;
+}

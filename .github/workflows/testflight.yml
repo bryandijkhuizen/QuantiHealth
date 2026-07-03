@@ -67,7 +67,7 @@ jobs:
       MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
       MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
       MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
-      MATCH_READONLY: ${{ inputs.bootstrap_signing && 'false' || 'true' }}
+      BOOTSTRAP_SIGNING: ${{ github.event.inputs.bootstrap_signing || 'false' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -98,6 +98,17 @@ jobs:
             printf 'Missing required TestFlight secrets/env values:\n' >&2
             printf ' - %s\n' "${missing[@]}" >&2
             exit 1
+          fi
+
+      - name: Configure signing mode
+        shell: bash
+        run: |
+          if [[ "${BOOTSTRAP_SIGNING}" == "true" ]]; then
+            echo "MATCH_READONLY=false" >> "$GITHUB_ENV"
+            echo "fastlane match bootstrap enabled"
+          else
+            echo "MATCH_READONLY=true" >> "$GITHUB_ENV"
+            echo "fastlane match readonly mode enabled"
           fi
 
       - name: Install Ruby dependencies

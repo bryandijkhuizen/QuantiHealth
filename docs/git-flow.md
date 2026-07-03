@@ -24,15 +24,14 @@ Do not use one global version for the whole workspace.
 
 Use target-specific tags:
 
-- Quantivita iOS: `quantivita-ios-v<version>`
-- Quantivita Native iOS: `quantivita-native-ios-v<version>`
-- Progressa Native iOS: `progressa-native-ios-v<version>`
+- Quantivita iOS: `quantivita-native-ios-v<version>`
+- Progressa iOS: `progressa-native-ios-v<version>`
 - Quantivita MCP / homeserver: `quantivita-mcp-v<version>`
 
 Example:
 
 ```bash
-git tag quantivita-ios-v0.1.0
+git tag quantivita-native-ios-v0.1.0
 git tag quantivita-mcp-v0.2.0
 ```
 
@@ -45,8 +44,9 @@ Each app entry defines:
 
 - app name
 - app path
-- platform type (`flutter-ios` or `native-ios`)
+- platform type (`native-ios`)
 - scheme
+- current version
 - bundle identifier secret name
 - optional test command
 
@@ -83,11 +83,11 @@ Open a PR into `develop`.
 ```bash
 git checkout develop
 git pull origin develop
-git checkout -b release/quantivita-ios-1.1.0
+git checkout -b release/quantivita-native-ios-0.1.0
 
-scripts/validate_release.sh 1.1.0
+scripts/validate_release.sh 0.1.0
 
-git push origin release/quantivita-ios-1.1.0
+git push origin release/quantivita-native-ios-0.1.0
 ```
 
 Open a PR into `main`. After merge:
@@ -95,7 +95,7 @@ Open a PR into `main`. After merge:
 ```bash
 git checkout main
 git pull origin main
-git tag quantivita-ios-v1.1.0
+git tag quantivita-native-ios-v0.1.0
 git push origin main --tags
 
 git checkout develop
@@ -107,7 +107,7 @@ git push origin develop
 ## MCP / Homeserver Release Flow
 
 The Quantivita MCP server is versioned independently from the apps.
-Its version source is `Quantivita/server/package.json`.
+Its version source is `services/quantivita-mcp/server/package.json`.
 
 Use MCP-specific release branches and tags:
 
@@ -116,12 +116,12 @@ git checkout develop
 git pull origin develop
 git checkout -b release/quantivita-mcp-0.2.0
 
-cd Quantivita/server
+cd services/quantivita-mcp/server
 npm version 0.2.0 --no-git-tag-version
 npm test
-cd ../..
+cd ../../..
 
-git add Quantivita/server/package.json Quantivita/server/package-lock.json
+git add services/quantivita-mcp/server/package.json services/quantivita-mcp/server/package-lock.json
 git commit -m "Prepare Quantivita MCP 0.2.0"
 git push origin release/quantivita-mcp-0.2.0
 ```
@@ -164,7 +164,6 @@ Shared:
 
 Per app:
 
-- `QUANTIVITA_IOS_APP_IDENTIFIER`
 - `QUANTIVITA_NATIVE_IOS_APP_IDENTIFIER`
 - `PROGRESSA_NATIVE_IOS_APP_IDENTIFIER`
 

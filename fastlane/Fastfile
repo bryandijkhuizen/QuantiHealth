@@ -41,21 +41,7 @@ platform :ios do
     )
 
     Dir.chdir(app_path) do
-      if app_platform == "flutter-ios"
-        sh("flutter", "pub", "get")
-        sh(
-          "flutter",
-          "build",
-          "ipa",
-          "--release",
-          "--build-number=#{ENV.fetch("GITHUB_RUN_NUMBER", Time.now.to_i.to_s)}",
-          "--export-method",
-          "app-store"
-        )
-        ipa = Dir["build/ios/ipa/*.ipa"].first
-        UI.user_error!("No Flutter IPA was produced") unless ipa
-        upload_to_testflight(api_key: api_key, ipa: ipa, skip_waiting_for_build_processing: true)
-      elsif app_platform == "native-ios"
+      if app_platform == "native-ios"
         increment_build_number(
           build_number: ENV.fetch("GITHUB_RUN_NUMBER", Time.now.to_i.to_s),
           xcodeproj: "#{app_scheme}.xcodeproj"
@@ -79,4 +65,3 @@ platform :ios do
     end
   end
 end
-

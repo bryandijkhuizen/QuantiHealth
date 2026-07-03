@@ -1,22 +1,13 @@
 {
   "apps": [
     {
-      "id": "quantivita",
-      "name": "Quantivita",
-      "path": "Quantivita",
-      "platform": "flutter-ios",
-      "scheme": "Runner",
-      "tagPrefix": "quantivita-ios-v",
-      "bundleIdentifierSecret": "QUANTIVITA_IOS_APP_IDENTIFIER",
-      "testCommand": "flutter analyze && flutter test"
-    },
-    {
       "id": "quantivita-native",
-      "name": "Quantivita Native",
+      "name": "Quantivita",
       "path": "QuantivitaNative",
       "platform": "native-ios",
       "scheme": "QuantivitaNative",
       "tagPrefix": "quantivita-native-ios-v",
+      "currentVersion": "0.1.0",
       "bundleIdentifierSecret": "QUANTIVITA_NATIVE_IOS_APP_IDENTIFIER",
       "testCommand": "xcodebuild test -project QuantivitaNative.xcodeproj -scheme QuantivitaNative -destination 'platform=iOS Simulator,name=iPhone 16'"
     },
@@ -27,6 +18,7 @@
       "platform": "native-ios",
       "scheme": "ProgressaNative",
       "tagPrefix": "progressa-native-ios-v",
+      "currentVersion": "2.0.0",
       "bundleIdentifierSecret": "PROGRESSA_NATIVE_IOS_APP_IDENTIFIER",
       "testCommand": "xcodebuild test -project ProgressaNative.xcodeproj -scheme ProgressaNative -destination 'platform=iOS Simulator,name=iPhone 16'"
     }

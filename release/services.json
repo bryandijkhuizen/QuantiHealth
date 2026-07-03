@@ -3,9 +3,9 @@
     {
       "id": "quantivita-mcp",
       "name": "Quantivita MCP / Homeserver",
-      "path": "Quantivita/server",
+      "path": "services/quantivita-mcp/server",
       "tagPrefix": "quantivita-mcp-v",
-      "versionFile": "Quantivita/server/package.json",
+      "versionFile": "services/quantivita-mcp/server/package.json",
       "testCommand": "npm test",
       "deployWorkflow": "deploy-quantivita-mcp.yml"
     }

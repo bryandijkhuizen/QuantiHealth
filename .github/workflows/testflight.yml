@@ -3,7 +3,6 @@ name: Deploy Quanti Apps to TestFlight
 on:
   push:
     tags:
-      - "quantivita-ios-v*.*.*"
       - "quantivita-native-ios-v*.*.*"
       - "progressa-native-ios-v*.*.*"
   workflow_dispatch:
@@ -71,13 +70,6 @@ jobs:
 
       - name: Show Xcode version
         run: xcodebuild -version
-
-      - name: Set up Flutter
-        if: matrix.app.platform == 'flutter-ios'
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
 
       - name: Install Ruby dependencies
         run: bundle install

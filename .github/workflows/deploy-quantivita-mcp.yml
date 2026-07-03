@@ -30,14 +30,14 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: Quantivita/server/package-lock.json
+          cache-dependency-path: services/quantivita-mcp/server/package-lock.json
 
       - name: Install dependencies
-        working-directory: Quantivita/server
+        working-directory: services/quantivita-mcp/server
         run: npm ci
 
       - name: Run MCP tests
-        working-directory: Quantivita/server
+        working-directory: services/quantivita-mcp/server
         run: npm test
 
       - name: Install deploy tools
@@ -54,4 +54,4 @@ jobs:
       - name: Deploy homeserver
         env:
           QUANTIVITA_HOMESERVER_KEY: ~/.ssh/quantivita_homeserver
-        run: Quantivita/scripts/deploy_homeserver.sh
+        run: scripts/deploy_quantivita_mcp.sh

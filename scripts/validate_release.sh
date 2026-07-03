@@ -22,8 +22,8 @@ else
   echo "jq is recommended for release manifest validation; skipping JSON validation."
 fi
 
-if [[ -d Quantivita/server ]]; then
-  (cd Quantivita/server && npm test)
+if [[ -d services/quantivita-mcp/server ]]; then
+  (cd services/quantivita-mcp/server && npm test)
 fi
 
 echo

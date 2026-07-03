@@ -26,7 +26,7 @@ jobs:
           requested="${{ github.event.inputs.app || 'all' }}"
           ref_name="${GITHUB_REF_NAME}"
           if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
-            apps="$(jq -c --arg tag "${ref_name}" '[.apps[] | select($tag | startswith(.tagPrefix))]' release/apps.json)"
+            apps="$(jq -c --arg tag "${ref_name}" '[.apps[] | select(.tagPrefix as $prefix | $tag | startswith($prefix))]' release/apps.json)"
           elif [[ "${requested}" == "all" ]]; then
             apps="$(jq -c '.apps' release/apps.json)"
           else

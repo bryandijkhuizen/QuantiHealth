@@ -71,6 +71,30 @@ jobs:
       - name: Show Xcode version
         run: xcodebuild -version
 
+      - name: Check required secrets
+        shell: bash
+        run: |
+          missing=()
+          for key in \
+            IOS_TEAM_ID \
+            IOS_APP_IDENTIFIER \
+            APP_STORE_CONNECT_KEY_ID \
+            APP_STORE_CONNECT_ISSUER_ID \
+            APP_STORE_CONNECT_API_KEY_BASE64 \
+            MATCH_PASSWORD \
+            MATCH_GIT_URL \
+            MATCH_GIT_BASIC_AUTHORIZATION
+          do
+            if [[ -z "${!key:-}" ]]; then
+              missing+=("${key}")
+            fi
+          done
+          if (( ${#missing[@]} > 0 )); then
+            printf 'Missing required TestFlight secrets/env values:\n' >&2
+            printf ' - %s\n' "${missing[@]}" >&2
+            exit 1
+          fi
+
       - name: Install Ruby dependencies
         run: bundle install
 

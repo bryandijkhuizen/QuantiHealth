@@ -104,10 +104,10 @@ jobs:
         shell: bash
         run: |
           if [[ "${BOOTSTRAP_SIGNING}" == "true" ]]; then
-            echo "MATCH_READONLY=false" >> "$GITHUB_ENV"
+            echo "QUANTI_MATCH_BOOTSTRAP=true" >> "$GITHUB_ENV"
             echo "fastlane match bootstrap enabled"
           else
-            echo "MATCH_READONLY=true" >> "$GITHUB_ENV"
+            echo "QUANTI_MATCH_BOOTSTRAP=false" >> "$GITHUB_ENV"
             echo "fastlane match readonly mode enabled"
           fi
 

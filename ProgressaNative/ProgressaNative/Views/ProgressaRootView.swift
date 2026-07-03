@@ -290,7 +290,7 @@ private struct ProgressaWorkoutDetail: View {
                         VStack(spacing: 8) {
                             Image(systemName: "dumbbell").font(.largeTitle).foregroundStyle(.secondary)
                             Text("No exercises added yet").font(.headline)
-                            Button { showingAddExercise = true } label: { Label("Add your first exercise", systemImage: "plus.circle") }
+                            Text("Add exercises to start tracking sets.").foregroundStyle(.secondary)
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 24)
@@ -617,11 +617,12 @@ private struct DraftSetRow: Identifiable {
     let id = UUID()
     var weightText: String
     var repsText: String
+    var suggestedWeightText: String = ""
+    var suggestedRepsText: String = ""
 }
 
-/// Step 2 of the add-exercise wizard: an editable per-set table (weight + reps), seeded from
-/// the exercise's previous workout set structure when available, so the user mostly just
-/// confirms rather than typing everything from scratch.
+/// Step 2 of the add-exercise wizard: an editable per-set table (weight + reps), with previous
+/// workout values shown as suggestions so new entries are still deliberate user input.
 private struct ExerciseSetupStep: View {
     @EnvironmentObject private var model: ProgressaModel
     let exercise: ProgressaExerciseLibraryItem
@@ -647,7 +648,7 @@ private struct ExerciseSetupStep: View {
                 } else if let lastUsedWeightKg {
                     Label(
                         loadedPreviousStructure
-                            ? "Previous sets loaded below. Last used: \(model.workoutWeightText(lastUsedWeightKg))"
+                            ? "Previous set values are suggested below. Last used: \(model.workoutWeightText(lastUsedWeightKg))"
                             : "Last used: \(model.workoutWeightText(lastUsedWeightKg))",
                         systemImage: "clock.arrow.circlepath"
                     ).font(.footnote)
@@ -659,16 +660,21 @@ private struct ExerciseSetupStep: View {
                 ForEach($rows) { $row in
                     HStack {
                         Text("Set \(rowNumber(row))").frame(width: 44, alignment: .leading).foregroundStyle(.secondary)
-                        TextField("Weight (\(model.workoutWeightUnit))", text: $row.weightText)
+                        TextField(row.suggestedWeightText.isEmpty ? "Weight" : row.suggestedWeightText, text: $row.weightText)
                             .keyboardType(.decimalPad).multilineTextAlignment(.trailing)
                         Text(model.workoutWeightUnit).font(.caption2).foregroundStyle(.secondary)
-                        TextField("Reps", text: $row.repsText)
+                        TextField(row.suggestedRepsText.isEmpty ? "Reps" : row.suggestedRepsText, text: $row.repsText)
                             .keyboardType(.numberPad).multilineTextAlignment(.trailing).frame(width: 44)
                         Text("reps").font(.caption2).foregroundStyle(.secondary)
                     }
                 }.onDelete { rows.remove(atOffsets: $0) }
                 Button {
-                    rows.append(DraftSetRow(weightText: rows.last?.weightText ?? "", repsText: rows.last?.repsText ?? ""))
+                    rows.append(DraftSetRow(
+                        weightText: "",
+                        repsText: "",
+                        suggestedWeightText: rows.last?.suggestedWeightText ?? "",
+                        suggestedRepsText: rows.last?.suggestedRepsText ?? ""
+                    ))
                 } label: { Label("Add set", systemImage: "plus.circle") }
             }
             Section("Advanced (applies to all sets above)") {
@@ -690,13 +696,15 @@ private struct ExerciseSetupStep: View {
                 loadedPreviousStructure = true
                 rows = previousSets.map {
                     DraftSetRow(
-                        weightText: $0.weightKg.map { formattedNumber(model.workoutWeightForDisplay($0)) } ?? "",
-                        repsText: $0.reps.map(String.init) ?? ""
+                        weightText: "",
+                        repsText: "",
+                        suggestedWeightText: $0.weightKg.map { formattedNumber(model.workoutWeightForDisplay($0)) } ?? "",
+                        suggestedRepsText: $0.reps.map(String.init) ?? ""
                     )
                 }
             } else {
                 let defaultWeightText = weight.map { formattedNumber(model.workoutWeightForDisplay($0)) } ?? ""
-                rows = (0..<3).map { _ in DraftSetRow(weightText: defaultWeightText, repsText: "") }
+                rows = (0..<3).map { _ in DraftSetRow(weightText: "", repsText: "", suggestedWeightText: defaultWeightText) }
             }
             isLoadingHistory = false
         }

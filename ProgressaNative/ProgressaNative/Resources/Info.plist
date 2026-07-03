@@ -6,7 +6,7 @@
 <key>CFBundleIdentifier</key><string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 <key>CFBundleName</key><string>Progressa</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>2.0.0</string><key>CFBundleVersion</key><string>1</string>
+<key>CFBundleShortVersionString</key><string>2.0.1</string><key>CFBundleVersion</key><string>1</string>
 <key>CFBundleURLTypes</key><array><dict><key>CFBundleURLName</key><string>progressa</string><key>CFBundleURLSchemes</key><array><string>progressa</string></array></dict></array>
 <key>ProgressaSupabaseAnonKey</key><string>$(SUPABASE_ANON_KEY)</string>
 <key>ProgressaSupabaseURL</key><string>$(PROGRESSA_SUPABASE_URL)</string>

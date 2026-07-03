@@ -33,6 +33,23 @@ def app_ipa
   File.join(app_path, "build", "#{app_scheme}.ipa")
 end
 
+def app_identifier
+  ENV.fetch("IOS_APP_IDENTIFIER")
+end
+
+def provisioning_profile_name
+  "match AppStore #{app_identifier}"
+end
+
+def signing_xcargs
+  [
+    "CODE_SIGN_STYLE=Manual",
+    "PROVISIONING_PROFILE_SPECIFIER=\"#{provisioning_profile_name}\"",
+    "CODE_SIGN_IDENTITY=\"Apple Distribution\"",
+    "DEVELOPMENT_TEAM=#{ENV.fetch("IOS_TEAM_ID")}"
+  ].join(" ")
+end
+
 platform :ios do
   desc "Build and upload the selected Quanti app to TestFlight"
   lane :beta do
@@ -44,7 +61,7 @@ platform :ios do
       type: "appstore",
       readonly: ENV.fetch("QUANTI_MATCH_BOOTSTRAP", "false") != "true",
       git_url: ENV.fetch("MATCH_GIT_URL"),
-      app_identifier: ENV.fetch("IOS_APP_IDENTIFIER"),
+      app_identifier: app_identifier,
       api_key: api_key
     )
 
@@ -60,7 +77,13 @@ platform :ios do
           export_method: "app-store",
           clean: true,
           output_directory: File.join(app_path, "build"),
-          output_name: "#{app_scheme}.ipa"
+          output_name: "#{app_scheme}.ipa",
+          xcargs: signing_xcargs,
+          export_options: {
+            provisioningProfiles: {
+              app_identifier => provisioning_profile_name
+            }
+          }
         )
         upload_to_testflight(
           api_key: api_key,

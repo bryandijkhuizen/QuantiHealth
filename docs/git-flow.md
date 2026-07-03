@@ -47,7 +47,8 @@ Each app entry defines:
 - platform type (`native-ios`)
 - scheme
 - current version
-- bundle identifier secret name
+- bundle identifier
+- Apple team id
 - optional test command
 
 GitHub Actions uses these manifests so every Quanti target follows the same branch rules without copy-pasted workflows.
@@ -160,12 +161,6 @@ Shared:
 - `MATCH_PASSWORD`
 - `MATCH_GIT_URL`
 - `MATCH_GIT_BASIC_AUTHORIZATION`
-- `IOS_TEAM_ID`
-
-Per app:
-
-- `QUANTIVITA_NATIVE_IOS_APP_IDENTIFIER`
-- `PROGRESSA_NATIVE_IOS_APP_IDENTIFIER`
 
 MCP deploy:
 

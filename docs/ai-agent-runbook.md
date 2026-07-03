@@ -115,7 +115,7 @@ cd services/quantivita-mcp/server && npm test
 ```
 
 ```bash
-jq -e '.apps | length > 0 and all(.[]; .id and .path and .platform and .scheme and .tagPrefix and .currentVersion and .bundleIdentifierSecret)' release/apps.json
+jq -e '.apps | length > 0 and all(.[]; .id and .path and .platform and .scheme and .tagPrefix and .currentVersion and .bundleIdentifier and .teamId)' release/apps.json
 jq -e '.services | length > 0 and all(.[]; .id and .path and .tagPrefix and .versionFile and .testCommand)' release/services.json
 ```
 
@@ -149,4 +149,3 @@ scripts/configure_branch_protection.sh owner/repo
 ```
 
 Required secrets are listed in `docs/git-flow.md`.
-

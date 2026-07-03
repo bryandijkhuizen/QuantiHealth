@@ -8,7 +8,8 @@
       "scheme": "QuantivitaNative",
       "tagPrefix": "quantivita-native-ios-v",
       "currentVersion": "0.1.0",
-      "bundleIdentifierSecret": "QUANTIVITA_NATIVE_IOS_APP_IDENTIFIER",
+      "bundleIdentifier": "com.bryandijkh.quantivita",
+      "teamId": "85RT3VH5D8",
       "testCommand": "xcodebuild test -project QuantivitaNative.xcodeproj -scheme QuantivitaNative -destination 'platform=iOS Simulator,name=iPhone 16'"
     },
     {
@@ -19,7 +20,8 @@
       "scheme": "ProgressaNative",
       "tagPrefix": "progressa-native-ios-v",
       "currentVersion": "2.0.0",
-      "bundleIdentifierSecret": "PROGRESSA_NATIVE_IOS_APP_IDENTIFIER",
+      "bundleIdentifier": "com.bryandijkh.progressa",
+      "teamId": "85RT3VH5D8",
       "testCommand": "xcodebuild test -project ProgressaNative.xcodeproj -scheme ProgressaNative -destination 'platform=iOS Simulator,name=iPhone 16'"
     }
   ]

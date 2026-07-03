@@ -502,7 +502,7 @@ private extension HKWorkoutActivityType {
         case .soccer: return 16
         case .basketball: return 17
         case .coreTraining: return 18
-        case .paddling: return 19
+        case .paddleSports: return 19
         default: return 0
         }
     }
@@ -527,7 +527,7 @@ private extension HKWorkoutActivityType {
         case 16: return .soccer
         case 17: return .basketball
         case 18: return .coreTraining
-        case 19: return .paddling
+        case 19: return .paddleSports
         default: return .mixedCardio
         }
     }
@@ -552,7 +552,7 @@ private extension HKWorkoutActivityType {
         case .soccer: return "Soccer"
         case .basketball: return "Basketball"
         case .coreTraining: return "Core Training"
-        case .paddling: return "Paddling"
+        case .paddleSports: return "Paddling"
         default: return "Workout"
         }
     }

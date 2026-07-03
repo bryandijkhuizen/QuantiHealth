@@ -51,8 +51,8 @@ jobs:
       APP_PATH: ${{ matrix.app.path }}
       APP_PLATFORM: ${{ matrix.app.platform }}
       IOS_SCHEME: ${{ matrix.app.scheme }}
-      IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
-      IOS_APP_IDENTIFIER: ${{ secrets[matrix.app.bundleIdentifierSecret] }}
+      IOS_TEAM_ID: ${{ matrix.app.teamId }}
+      IOS_APP_IDENTIFIER: ${{ matrix.app.bundleIdentifier }}
 
       APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
       APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
@@ -76,8 +76,6 @@ jobs:
         run: |
           missing=()
           for key in \
-            IOS_TEAM_ID \
-            IOS_APP_IDENTIFIER \
             APP_STORE_CONNECT_KEY_ID \
             APP_STORE_CONNECT_ISSUER_ID \
             APP_STORE_CONNECT_API_KEY_BASE64 \

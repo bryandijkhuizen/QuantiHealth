@@ -14,7 +14,7 @@ def app_store_api_key
 end
 
 def app_path
-  ENV.fetch("APP_PATH")
+  File.expand_path(ENV.fetch("APP_PATH"), File.expand_path("..", __dir__))
 end
 
 def app_platform

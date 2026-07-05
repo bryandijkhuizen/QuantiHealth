@@ -29,4 +29,11 @@ final class WorkoutDecodingTests: XCTestCase {
         let workout = try JSONDecoder().decode(Workout.self, from: json)
         XCTAssertEqual(workout.startTime.timeIntervalSince1970, 1_750_235_400, accuracy: 0.1)
     }
+
+    func testSwiftReferenceDateDecodesFromCache() throws {
+        let start = ISO8601DateFormatter().date(from: "2026-07-04T16:32:00Z")!
+        let cached = try JSONEncoder().encode(Workout(id: "x", title: "Swim", startTime: start, durationMinutes: 9, energyKcal: 62))
+        let workout = try JSONDecoder().decode(Workout.self, from: cached)
+        XCTAssertEqual(workout.startTime.timeIntervalSince1970, start.timeIntervalSince1970, accuracy: 0.1)
+    }
 }

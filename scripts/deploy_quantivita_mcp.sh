@@ -22,8 +22,23 @@ run_local() {
   fi
 }
 
+remote_env_value() {
+  printf '%s\n' "${REMOTE_ENV_EXISTING}" | awk -F= -v key="$1" '$1 == key { sub(/^[^=]*=/, ""); print; exit }'
+}
+
+env_value() {
+  local key="$1"
+  local fallback="$2"
+  local value="${!key:-}"
+  if [[ -z "${value}" ]]; then
+    value="$(remote_env_value "${key}")"
+  fi
+  printf '%s' "${value:-${fallback}}"
+}
+
 echo "Preparing Quantivita stack on ${USER}@${HOST}:${REMOTE_DIR}..."
 "${SSH[@]}" "mkdir -p '${REMOTE_DIR}'"
+REMOTE_ENV_EXISTING="$("${SSH[@]}" "cat '${REMOTE_DIR}/.env' 2>/dev/null || true")"
 
 echo "Syncing server files..."
 run_local rsync -az --delete \
@@ -33,14 +48,14 @@ run_local rsync -az --delete \
 
 echo "Writing remote stack environment..."
 REMOTE_ENV=$(cat <<EOF
-QUANTIVITA_PUBLIC_BASE_URL=${QUANTIVITA_PUBLIC_BASE_URL:-https://api.quantivita.bryandijkh.com}
-QUANTIVITA_SESSION_SECRET=${QUANTIVITA_SESSION_SECRET:-dev-change-me}
-APPLE_WEB_CLIENT_ID=${APPLE_WEB_CLIENT_ID:-}
-PROGRESSA_API_BASE_URL=${PROGRESSA_API_BASE_URL:-https://api.progressa.bryandijkh.com}
-STRAVA_CLIENT_ID=${STRAVA_CLIENT_ID:-}
-STRAVA_CLIENT_SECRET=${STRAVA_CLIENT_SECRET:-}
-STRAVA_REDIRECT_URI=${STRAVA_REDIRECT_URI:-quantivita://quantivita.app/strava-auth}
-STRAVA_API_BASE_URL=${STRAVA_API_BASE_URL:-https://www.strava.com}
+QUANTIVITA_PUBLIC_BASE_URL=$(env_value QUANTIVITA_PUBLIC_BASE_URL https://api.quantivita.bryandijkh.com)
+QUANTIVITA_SESSION_SECRET=$(env_value QUANTIVITA_SESSION_SECRET dev-change-me)
+APPLE_WEB_CLIENT_ID=$(env_value APPLE_WEB_CLIENT_ID "")
+PROGRESSA_API_BASE_URL=$(env_value PROGRESSA_API_BASE_URL https://api.progressa.bryandijkh.com)
+STRAVA_CLIENT_ID=$(env_value STRAVA_CLIENT_ID "")
+STRAVA_CLIENT_SECRET=$(env_value STRAVA_CLIENT_SECRET "")
+STRAVA_REDIRECT_URI=$(env_value STRAVA_REDIRECT_URI quantivita://quantivita.app/strava-auth)
+STRAVA_API_BASE_URL=$(env_value STRAVA_API_BASE_URL https://www.strava.com)
 EOF
 )
 "${SSH[@]}" "cat > '${REMOTE_DIR}/.env'" <<< "${REMOTE_ENV}"

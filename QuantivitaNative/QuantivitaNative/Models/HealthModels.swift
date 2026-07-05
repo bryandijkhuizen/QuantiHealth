@@ -182,15 +182,23 @@ private extension KeyedDecodingContainer {
 
     func decodeFlexibleDate(forKey key: Key) throws -> Date {
         if let seconds = try? decode(Double.self, forKey: key) {
-            return Date(timeIntervalSince1970: seconds > 10_000_000_000 ? seconds / 1000 : seconds)
+            return Self.date(fromNumericSeconds: seconds)
         }
         let raw = try decode(String.self, forKey: key)
         if let seconds = Double(raw) {
-            return Date(timeIntervalSince1970: seconds > 10_000_000_000 ? seconds / 1000 : seconds)
+            return Self.date(fromNumericSeconds: seconds)
         }
         let fractional = ISO8601DateFormatter()
         fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         if let date = fractional.date(from: raw) ?? ISO8601DateFormatter().date(from: raw) { return date }
         throw DecodingError.dataCorruptedError(forKey: key, in: self, debugDescription: "Unsupported date: \(raw)")
+    }
+
+    private static func date(fromNumericSeconds seconds: Double) -> Date {
+        let normalized = seconds > 10_000_000_000 ? seconds / 1000 : seconds
+        if normalized < Date(timeIntervalSinceReferenceDate: 0).timeIntervalSince1970 {
+            return Date(timeIntervalSinceReferenceDate: normalized)
+        }
+        return Date(timeIntervalSince1970: normalized)
     }
 }

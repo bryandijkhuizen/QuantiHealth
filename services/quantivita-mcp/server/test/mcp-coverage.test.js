@@ -102,11 +102,59 @@ test('MCP always reports advanced metric coverage and missing daily rows', async
   assert.equal(missingDoc.quantivitaCoverage.missingDays.dates.includes('2026-06-02'), true);
 });
 
-async function callMcpTool(endpoint, name, args) {
+test('MCP summary includes up to 365 daily rows', async (t) => {
+  const dataDir = await mkdtemp(path.join(os.tmpdir(), 'quantivita-mcp-history-'));
+  const port = await availablePort();
+  const server = spawn(process.execPath, ['src/server.js'], {
+    cwd: path.resolve(import.meta.dirname, '..'),
+    env: {
+      ...process.env,
+      PORT: String(port),
+      QUANTIVITA_DATA_DIR: dataDir,
+      QUANTIVITA_SESSION_SECRET: 'mcp-history-test-secret',
+      QUANTIVITA_MCP_TOKENS: 'mcp-history-token:mcp-history-account',
+    },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  let output = '';
+  server.stdout.on('data', (chunk) => { output += chunk; });
+  server.stderr.on('data', (chunk) => { output += chunk; });
+
+  t.after(async () => {
+    server.kill('SIGTERM');
+    if (server.exitCode === null) await once(server, 'exit');
+    await rm(dataDir, { recursive: true, force: true });
+  });
+
+  await waitUntilHealthy(port, server, () => output);
+  const endpoint = `http://127.0.0.1:${port}`;
+  const accountId = 'mcp-history-account';
+  const syncToken = 'mcp-history-sync-token';
+  const auth = { authorization: `Bearer ${syncToken}` };
+  const latest = new Date('2026-07-05T00:00:00Z');
+  const daily = Array.from({ length: 400 }, (_, index) => {
+    const date = new Date(latest);
+    date.setUTCDate(latest.getUTCDate() - (399 - index));
+    return { date: date.toISOString().slice(0, 10), recoveryScore: 60 + (index % 20) };
+  });
+
+  assert.equal((await postJson(`${endpoint}/api/accounts/register`, { accountId, syncToken })).status, 202);
+  assert.equal((await postJson(`${endpoint}/api/users/${accountId}/ingest`, { profile: {}, daily, workouts: [] }, auth)).status, 202);
+
+  const summary = await callMcpTool(endpoint, 'get_latest_summary', {}, 'mcp-history-token');
+  const summaryText = JSON.parse(summary.content[0].text);
+  const summaryDoc = JSON.parse(summaryText.text);
+  assert.equal(summaryDoc.recentDaily.length, 365);
+  assert.equal(summaryDoc.recentDaily.at(0).date, '2026-07-05');
+  assert.equal(summaryDoc.recentDaily.at(-1).date, '2025-07-06');
+  assert.equal(summaryText.metadata.historyDays, '365');
+});
+
+async function callMcpTool(endpoint, name, args, token = 'mcp-coverage-token') {
   const response = await fetch(`${endpoint}/mcp`, {
     method: 'POST',
     headers: {
-      authorization: 'Bearer mcp-coverage-token',
+      authorization: `Bearer ${token}`,
       'content-type': 'application/json',
       accept: 'application/json, text/event-stream',
     },

@@ -29,6 +29,7 @@ const mcpSessions = new Map();
 const mcpSdkTransports = new Map();
 const oauthClients = new Map();
 const oauthCodes = new Map();
+const MCP_HISTORY_DAYS = 365;
 const appleJwks = createRemoteJWKSet(new URL('https://appleid.apple.com/auth/keys'));
 const appleStates = new Set();
 const observability = createObservability({
@@ -1038,10 +1039,10 @@ function healthSummaryDocument(data) {
   const recentDaily = [...(data.daily || [])]
     .filter((day) => day?.date)
     .sort((a, b) => b.date.localeCompare(a.date))
-    .slice(0, 45);
+    .slice(0, MCP_HISTORY_DAYS);
   const workouts = [...(data.workouts || [])]
     .sort((a, b) => numericTime(b.startTime || b.date) - numericTime(a.startTime || a.date))
-    .slice(0, 120);
+    .slice(0, MCP_HISTORY_DAYS);
   return {
     id: 'summary:latest',
     title: 'Latest Quantivita health summary',
@@ -1059,6 +1060,7 @@ function healthSummaryDocument(data) {
     metadata: {
       source: 'quantivita',
       type: 'summary',
+      historyDays: MCP_HISTORY_DAYS,
       updatedAt: data.updatedAt || null,
       latestDate: daily?.date || null,
       workoutCount: Array.isArray(data.workouts) ? data.workouts.length : 0,

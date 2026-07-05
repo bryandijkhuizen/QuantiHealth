@@ -54,7 +54,7 @@ final class HealthKitService {
         try await store.requestAuthorization(toShare: shares, read: reads)
     }
 
-    func load(days: Int = 30) async throws -> (HealthSummary, [Workout]) {
+    func load(days: Int = 365) async throws -> (HealthSummary, [Workout]) {
         let calendar = Calendar.current
         let start = calendar.startOfDay(for: .now)
         async let steps = cumulative(.stepCount, unit: .count(), start: start)

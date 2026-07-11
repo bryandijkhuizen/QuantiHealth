@@ -16,6 +16,7 @@ test('registration is idempotent and rejects token replacement', async (t) => {
     env: {
       ...process.env,
       PORT: String(port),
+      QUANTIVITA_PUBLIC_BASE_URL: `http://127.0.0.1:${port}`,
       QUANTIVITA_DATA_DIR: dataDir,
       QUANTIVITA_SESSION_SECRET: 'registration-test-secret',
     },
@@ -35,6 +36,17 @@ test('registration is idempotent and rejects token replacement', async (t) => {
   const endpoint = `http://127.0.0.1:${port}`;
   const accountId = 'native-account-1';
   const originalToken = 'original-native-token';
+
+  const openapiResponse = await fetch(`${endpoint}/openapi.json`);
+  assert.equal(openapiResponse.status, 200);
+  const openapi = await openapiResponse.json();
+  assert.equal(openapi.openapi, '3.1.0');
+  assert.equal(openapi.servers[0].url, endpoint);
+  assert.ok(openapi.paths['/api/users/{accountId}/workouts'].get);
+
+  const docsResponse = await fetch(`${endpoint}/docs`);
+  assert.equal(docsResponse.status, 200);
+  assert.match(await docsResponse.text(), /SwaggerUIBundle/);
 
   const created = await postJson(`${endpoint}/api/accounts/register`, {
     accountId,

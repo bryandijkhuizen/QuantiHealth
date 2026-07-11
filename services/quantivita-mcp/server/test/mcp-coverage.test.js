@@ -36,6 +36,7 @@ test('MCP always reports advanced metric coverage and missing daily rows', async
   const accountId = 'mcp-coverage-account';
   const syncToken = 'mcp-coverage-sync-token';
   const auth = { authorization: `Bearer ${syncToken}` };
+  const recentWorkoutStart = new Date(Date.now() - 86_400_000).toISOString();
 
   assert.equal((await postJson(`${endpoint}/api/accounts/register`, { accountId, syncToken })).status, 202);
   assert.equal((await postJson(
@@ -67,13 +68,19 @@ test('MCP always reports advanced metric coverage and missing daily rows', async
       workouts: [{
         id: 'climb-1',
         title: 'Workout',
-        startTime: '2026-07-03T07:30:00Z',
+        startTime: recentWorkoutStart,
         durationMinutes: 50,
         energyKcal: 530,
         distanceMeters: 0,
         averageHeartRate: 152,
         hasRoute: true,
         typeCode: 11,
+      }, {
+        id: 'old-workout',
+        title: 'Old ride',
+        startTime: '2025-01-03T07:30:00Z',
+        durationMinutes: 40,
+        energyKcal: 400,
       }],
     },
     auth,
@@ -81,7 +88,19 @@ test('MCP always reports advanced metric coverage and missing daily rows', async
 
   const workouts = await fetch(`${endpoint}/api/users/${accountId}/workouts`, { headers: auth });
   assert.equal(workouts.status, 200);
-  assert.equal((await workouts.json()).find((item) => item.id === 'climb-1').title, 'Rock Climbing');
+  const recentRestWorkouts = await workouts.json();
+  assert.equal(recentRestWorkouts.find((item) => item.id === 'climb-1').title, 'Rock Climbing');
+  assert.equal(recentRestWorkouts.some((item) => item.id === 'old-workout'), false);
+
+  const recentWorkouts = await callMcpTool(endpoint, 'get_workouts', {});
+  const recentPayload = JSON.parse(recentWorkouts.content[0].text);
+  assert.equal(recentPayload.workouts.some((item) => item.id === 'workout:climb-1'), true);
+  assert.equal(recentPayload.workouts.some((item) => item.id === 'workout:old-workout'), false);
+
+  const allWorkouts = await callMcpTool(endpoint, 'get_workouts', { all: true });
+  const allPayload = JSON.parse(allWorkouts.content[0].text);
+  assert.equal(allPayload.workouts.some((item) => item.id === 'workout:climb-1'), true);
+  assert.equal(allPayload.workouts.some((item) => item.id === 'workout:old-workout'), true);
 
   const summary = await callMcpTool(endpoint, 'get_latest_summary', {});
   const summaryText = JSON.parse(summary.content[0].text);
@@ -131,7 +150,8 @@ test('MCP summary includes up to 365 daily rows', async (t) => {
   const accountId = 'mcp-history-account';
   const syncToken = 'mcp-history-sync-token';
   const auth = { authorization: `Bearer ${syncToken}` };
-  const latest = new Date('2026-07-05T00:00:00Z');
+  const latest = new Date();
+  latest.setUTCHours(0, 0, 0, 0);
   const daily = Array.from({ length: 400 }, (_, index) => {
     const date = new Date(latest);
     date.setUTCDate(latest.getUTCDate() - (399 - index));
@@ -145,8 +165,10 @@ test('MCP summary includes up to 365 daily rows', async (t) => {
   const summaryText = JSON.parse(summary.content[0].text);
   const summaryDoc = JSON.parse(summaryText.text);
   assert.equal(summaryDoc.recentDaily.length, 365);
-  assert.equal(summaryDoc.recentDaily.at(0).date, '2026-07-05');
-  assert.equal(summaryDoc.recentDaily.at(-1).date, '2025-07-06');
+  assert.equal(summaryDoc.recentDaily.at(0).date, latest.toISOString().slice(0, 10));
+  const oldestExpected = new Date(latest);
+  oldestExpected.setUTCDate(latest.getUTCDate() - 364);
+  assert.equal(summaryDoc.recentDaily.at(-1).date, oldestExpected.toISOString().slice(0, 10));
   assert.equal(summaryText.metadata.historyDays, '365');
 });
 

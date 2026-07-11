@@ -17,6 +17,10 @@ struct WorkoutsView: View {
                 }
                 .disabled(model.isSyncingProgressa)
             }
+            Button { Task { await model.forceSyncAllWorkouts() } } label: {
+                Label("Force sync all workouts", systemImage: "arrow.triangle.2.circlepath.circle")
+            }
+            .disabled(model.isLoading)
             ForEach(model.workouts) { workout in
                 NavigationLink(value: workout) {
                     VStack(alignment: .leading, spacing: 5) {
@@ -25,7 +29,11 @@ struct WorkoutsView: View {
                         Text("\(Int(workout.effectiveDurationMinutes)) min · \(Int(workout.effectiveEnergyKcal)) kcal").font(.subheadline)
                     }.padding(.vertical, 4)
                 }
+                .task {
+                    if workout.id == model.workouts.last?.id { await model.loadMoreWorkouts() }
+                }
             }
+            if model.isLoadingMoreWorkouts { ProgressView("Loading older workouts…") }
         }
         .overlay {
             if model.workouts.isEmpty {

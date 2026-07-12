@@ -9,6 +9,7 @@ import { mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createObservability, userHash } from './observability.js';
+import { openapiDocument, swaggerHtml } from './openapi.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -43,6 +44,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(observability.requestMiddleware);
 app.use(express.static(path.join(__dirname, '..', 'public')));
+
+app.get('/openapi.json', (_request, response) => response.json(openapiDocument(publicBaseUrl)));
+app.get('/docs', (_request, response) => response.type('html').send(swaggerHtml()));
 
 app.get('/healthz', (_request, response) => {
   response.json({ ok: true, service: 'quantivita-server' });
@@ -233,7 +237,7 @@ app.get('/api/users/:accountId/health/debug/daily', async (request, response) =>
 
 app.get('/api/users/:accountId/workouts', async (request, response) => {
   const data = await readUserData(request.params.accountId);
-  response.json(data.workouts || []);
+  response.json(workoutsInRange(data.workouts || [], request.query));
 });
 
 app.post('/api/users/:accountId/integrations/progressa/connect', async (request, response) => {
@@ -664,6 +668,26 @@ function createQuantivitaMcpServer(accountId) {
   );
 
   server.registerTool(
+    'get_workouts',
+    {
+      title: 'Get workouts',
+      description: 'Get workouts from the last 30 days by default. Set all=true or provide from/to to retrieve older history.',
+      inputSchema: {
+        from: z.string().optional(),
+        to: z.string().optional(),
+        all: z.boolean().optional(),
+        limit: z.number().int().positive().optional(),
+      },
+      outputSchema: { workouts: z.array(z.record(z.string(), z.unknown())) },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    },
+    async (args) => {
+      if (!accountId) return mcpAuthRequiredToolResult();
+      return mcpToolOutput(workoutsForMcp(withCalibratedStrain(await readUserData(accountId)), args));
+    },
+  );
+
+  server.registerTool(
     'get_workout_details',
     {
       title: 'Get workout details',
@@ -859,15 +883,7 @@ async function callMcpTool(accountId, params) {
   }
   if (name === 'get_workouts') {
     const data = withCalibratedStrain(await readUserData(accountId));
-    const docs = workoutDocuments(data, args).slice(0, clampNumber(Number(args.limit || 20), 1, 100));
-    return mcpToolOutput({
-      workouts: docs.map((doc) => ({
-        id: doc.id,
-        title: doc.title,
-        url: doc.url,
-        metadata: doc.metadata,
-      })),
-    });
+    return mcpToolOutput(workoutsForMcp(data, args));
   }
   if (name === 'get_workout_details') {
     const data = withCalibratedStrain(await readUserData(accountId));
@@ -907,6 +923,28 @@ function mcpTools() {
         additionalProperties: false,
       },
       outputSchema: fetchOutputSchema(),
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    },
+    {
+      name: 'get_workouts',
+      title: 'Get workouts',
+      description: 'Get workouts from the last 30 days by default. Set all=true or provide from/to to retrieve older history.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          from: { type: 'string', format: 'date-time' },
+          to: { type: 'string', format: 'date-time' },
+          all: { type: 'boolean', description: 'Return all stored workouts, regardless of age.' },
+          limit: { type: 'integer', minimum: 1 },
+        },
+        additionalProperties: false,
+      },
+      outputSchema: {
+        type: 'object',
+        properties: { workouts: { type: 'array', items: { type: 'object', additionalProperties: true } } },
+        required: ['workouts'],
+        additionalProperties: false,
+      },
       annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     },
     {
@@ -1160,7 +1198,9 @@ function missingDailyDocument(data, date) {
 }
 
 function workoutDocuments(data, args) {
-  const from = args.from ? numericTime(String(args.from)) : Number.NEGATIVE_INFINITY;
+  const from = args.from
+    ? numericTime(String(args.from))
+    : args.all ? Number.NEGATIVE_INFINITY : Date.now() - 30 * 86_400_000;
   const to = args.to ? numericTime(String(args.to)) : Number.POSITIVE_INFINITY;
   return [...(data.workouts || [])]
     .filter((workout) => {
@@ -1183,6 +1223,32 @@ function workoutDocuments(data, args) {
         progressaVolumeKg: workout.progressaDetails?.totalVolumeKg ?? null,
       },
     }));
+}
+
+function workoutsInRange(workouts, args = {}) {
+  const from = args.from
+    ? numericTime(String(args.from))
+    : String(args.all || '') === 'true' ? Number.NEGATIVE_INFINITY : Date.now() - 30 * 86_400_000;
+  const to = args.to ? numericTime(String(args.to)) : Number.POSITIVE_INFINITY;
+  return [...workouts]
+    .filter((workout) => {
+      const time = numericTime(workout.startTime || workout.date || '');
+      return !Number.isFinite(time) || (time >= from && time <= to);
+    })
+    .sort((a, b) => numericTime(b.startTime || b.date || '') - numericTime(a.startTime || a.date || ''));
+}
+
+function workoutsForMcp(data, args = {}) {
+  const docs = workoutDocuments(data, args);
+  const selected = args.limit ? docs.slice(0, Number(args.limit)) : docs;
+  return {
+    workouts: selected.map((doc) => ({
+      id: doc.id,
+      title: doc.title,
+      url: doc.url,
+      metadata: doc.metadata,
+    })),
+  };
 }
 
 function compactWorkout(workout) {

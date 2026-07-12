@@ -54,7 +54,7 @@ final class HealthKitService {
         try await store.requestAuthorization(toShare: shares, read: reads)
     }
 
-    func load(days: Int = 365) async throws -> (HealthSummary, [Workout]) {
+    func load(days: Int? = 30) async throws -> (HealthSummary, [Workout]) {
         let calendar = Calendar.current
         let start = calendar.startOfDay(for: .now)
         async let steps = cumulative(.stepCount, unit: .count(), start: start)
@@ -75,7 +75,9 @@ final class HealthKitService {
         async let height = latest(.height, unit: .meterUnit(with: .centi))
         async let bodyFat = latest(.bodyFatPercentage, unit: .percent())
         async let sleep = sleepSummary(since: calendar.date(byAdding: .day, value: -1, to: start)!)
-        async let workouts = workoutHistory(since: calendar.date(byAdding: .day, value: -days, to: .now)!)
+        async let workouts = workoutHistory(since: days.flatMap {
+            calendar.date(byAdding: .day, value: -$0, to: .now)
+        } ?? .distantPast)
 
         let profile = profileSummary()
         var summary = await HealthSummary(

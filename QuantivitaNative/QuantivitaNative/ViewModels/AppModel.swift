@@ -12,6 +12,7 @@ final class AppModel: ObservableObject {
     @Published var dailyScores = DailyScoringEngine.calculate(summary: HealthSummary(), workouts: [])
     @Published var isLoading = false
     @Published var isSyncingProgressa = false
+    @Published var isLoadingMoreWorkouts = false
     @Published var progressaConnected = false
     @Published var stravaConnected = false
     @Published var isUploadingStrava = false
@@ -25,6 +26,8 @@ final class AppModel: ObservableObject {
     private let progressaAuth = ProgressaAuthService()
     private let stravaAuth = StravaAuthService()
     private var account: QuantivitaAccount?
+    private var sessionGeneration = 0
+    private var loadedWorkoutDays = 30
 
     func bootstrap() async {
 #if DEBUG
@@ -98,6 +101,7 @@ final class AppModel: ObservableObject {
     /// Clears the active session and returns to authentication without destroying
     /// the cached account/dashboard, so the user can sign back in offline.
     func signOut() {
+        sessionGeneration += 1
         account = nil
         resetSessionState()
         stage = .authentication
@@ -142,6 +146,10 @@ final class AppModel: ObservableObject {
         progressaConnected = false
         stravaConnected = false
         healthConnectionLabel = "Not connected"
+        isLoading = false
+        isSyncingProgressa = false
+        isLoadingMoreWorkouts = false
+        loadedWorkoutDays = 30
     }
 
     func authorizeHealth() async {
@@ -165,10 +173,12 @@ final class AppModel: ObservableObject {
 
     func refreshAll(showErrors: Bool = true) async {
         guard !isLoading else { return }
+        let generation = sessionGeneration
         isLoading = true
         defer { isLoading = false }
         do {
-            let result = try await health.load()
+            let result = try await health.load(days: 30)
+            guard generation == sessionGeneration, account != nil else { return }
             summary = result.0
             healthConnectionLabel = result.0.hasAnyHealthData ? "Data available" : "Permission reviewed"
             workouts = ProgressaWorkoutLinker.preserveLinks(from: workouts, on: result.1)
@@ -180,6 +190,43 @@ final class AppModel: ObservableObject {
         if progressaConnected { await loadProgressa(showErrors: showErrors) }
         if let account { cache.save(accountId: account.accountId, summary: summary, workouts: workouts) }
         await syncHomeserver()
+    }
+
+    func loadMoreWorkouts() async {
+        guard !isLoadingMoreWorkouts, account != nil else { return }
+        let generation = sessionGeneration
+        isLoadingMoreWorkouts = true
+        defer { isLoadingMoreWorkouts = false }
+        let nextDays = loadedWorkoutDays + 30
+        do {
+            let fresh = try await health.load(days: nextDays).1
+            guard generation == sessionGeneration, account != nil else { return }
+            workouts = ProgressaWorkoutLinker.preserveLinks(from: workouts, on: fresh)
+            loadedWorkoutDays = nextDays
+            if progressaConnected { await loadProgressa(showErrors: false, days: nextDays) }
+            if let account { cache.save(accountId: account.accountId, summary: summary, workouts: workouts) }
+        } catch where !Self.isCancellation(error) { message = error.localizedDescription }
+        catch {}
+    }
+
+    func forceSyncAllWorkouts() async {
+        guard !isLoading, account != nil else { return }
+        let generation = sessionGeneration
+        isLoading = true
+        defer { isLoading = false }
+        do {
+            let result = try await health.load(days: nil)
+            guard generation == sessionGeneration, account != nil else { return }
+            summary = result.0
+            workouts = ProgressaWorkoutLinker.preserveLinks(from: workouts, on: result.1)
+            if progressaConnected { await loadProgressa(showErrors: true, days: nil) }
+            dailyScores = DailyScoringEngine.calculate(summary: summary, workouts: workouts)
+            recovery = dailyScores.recovery
+            if let account { cache.save(accountId: account.accountId, summary: summary, workouts: workouts) }
+            await syncHomeserver()
+            message = "All workouts synced."
+        } catch where !Self.isCancellation(error) { message = error.localizedDescription }
+        catch {}
     }
 
     func saveHealthProfile(
@@ -231,13 +278,15 @@ final class AppModel: ObservableObject {
         await loadProgressa(showErrors: true)
     }
 
-    private func loadProgressa(showErrors: Bool) async {
+    private func loadProgressa(showErrors: Bool, days: Int? = 30) async {
         guard let account, !isSyncingProgressa else { return }
         isSyncingProgressa = true
         defer { isSyncingProgressa = false }
         do {
             let incoming = try await api.fetchProgressaWorkouts(
-                account: account, from: Calendar.current.date(byAdding: .year, value: -1, to: .now)!, to: .now, limit: 50
+                account: account,
+                from: days.flatMap { Calendar.current.date(byAdding: .day, value: -$0, to: .now) },
+                to: .now
             )
             workouts = ProgressaWorkoutLinker.attach(incoming, to: workouts)
             cache.save(accountId: account.accountId, summary: summary, workouts: workouts)

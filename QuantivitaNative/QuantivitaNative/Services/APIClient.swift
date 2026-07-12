@@ -108,16 +108,15 @@ final class APIClient {
         )
     }
 
-    func fetchProgressaWorkouts(account: QuantivitaAccount, from: Date, to: Date, limit: Int = 100) async throws -> [Workout] {
+    func fetchProgressaWorkouts(account: QuantivitaAccount, from: Date?, to: Date) async throws -> [Workout] {
         var components = URLComponents(
             url: baseURL.appendingPathComponent("api/users/\(account.accountId)/integrations/progressa/workouts"),
             resolvingAgainstBaseURL: false
         )!
         components.queryItems = [
-            URLQueryItem(name: "from", value: from.ISO8601Format()),
+            from.map { URLQueryItem(name: "from", value: $0.ISO8601Format()) },
             URLQueryItem(name: "to", value: to.ISO8601Format()),
-            URLQueryItem(name: "limit", value: String(limit)),
-        ]
+        ].compactMap { $0 }
         var request = URLRequest(url: components.url!)
         request.setValue("Bearer \(account.syncToken)", forHTTPHeaderField: "Authorization")
         let data = try await data(for: request)

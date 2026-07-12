@@ -20,9 +20,11 @@ form.addEventListener('submit', (event) => {
 });
 
 logoutButton.addEventListener('click', async () => {
+  logoutButton.disabled = true;
   localStorage.removeItem('quantivitaSession');
-  await fetch('/api/logout', { method: 'POST' });
-  location.reload();
+  currentSession = null;
+  try { await fetch('/api/logout', { method: 'POST' }); }
+  finally { location.assign('/'); }
 });
 
 themeToggle.addEventListener('click', () => {

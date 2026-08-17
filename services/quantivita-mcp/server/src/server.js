@@ -1201,7 +1201,7 @@ function workoutDocuments(data, args) {
   const from = args.from
     ? numericTime(String(args.from))
     : args.all ? Number.NEGATIVE_INFINITY : Date.now() - 30 * 86_400_000;
-  const to = args.to ? numericTime(String(args.to)) : Number.POSITIVE_INFINITY;
+  const to = args.to ? numericTimeEndOfDay(String(args.to)) : Number.POSITIVE_INFINITY;
   return [...(data.workouts || [])]
     .filter((workout) => {
       const time = numericTime(workout.startTime || workout.date || '');
@@ -1229,7 +1229,7 @@ function workoutsInRange(workouts, args = {}) {
   const from = args.from
     ? numericTime(String(args.from))
     : String(args.all || '') === 'true' ? Number.NEGATIVE_INFINITY : Date.now() - 30 * 86_400_000;
-  const to = args.to ? numericTime(String(args.to)) : Number.POSITIVE_INFINITY;
+  const to = args.to ? numericTimeEndOfDay(String(args.to)) : Number.POSITIVE_INFINITY;
   return [...workouts]
     .filter((workout) => {
       const time = numericTime(workout.startTime || workout.date || '');
@@ -1492,6 +1492,11 @@ function paceMinPerKm(workout) {
   const duration = Number(workout.durationMinutes || 0);
   if (distanceKm <= 0 || duration <= 0) return null;
   return roundToOneDecimal(duration / distanceKm);
+}
+
+function numericTimeEndOfDay(value) {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(String(value))) return numericTime(String(value) + 'T23:59:59.999Z');
+  return numericTime(value);
 }
 
 function numericTime(value) {

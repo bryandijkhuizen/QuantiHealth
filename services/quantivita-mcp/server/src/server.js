@@ -706,6 +706,27 @@ function createQuantivitaMcpServer(accountId) {
     },
   );
 
+  server.registerTool(
+    'get_weight_history',
+    {
+      title: 'Get weight history',
+      description:
+        'Get body weight (kg) history entries by date. Set range to 7d/30d/90d/180d/365d, or provide from/to. Returns all history by default.',
+      inputSchema: {
+        from: z.string().optional(),
+        to: z.string().optional(),
+        range: z.enum(['7d', '30d', '90d', '180d', '365d']).optional(),
+        limit: z.number().int().positive().optional(),
+      },
+      outputSchema: weightHistoryOutputZodSchema(),
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    },
+    async (args) => {
+      if (!accountId) return mcpAuthRequiredToolResult();
+      return mcpToolOutput(weightHistoryForMcp(withCalibratedStrain(await readUserData(accountId)), args));
+    },
+  );
+
   return server;
 }
 
@@ -736,6 +757,16 @@ function fetchOutputZodSchema() {
     text: z.string(),
     url: z.string(),
     metadata: z.record(z.string(), z.string()).optional(),
+  };
+}
+
+function weightHistoryOutputZodSchema() {
+  return {
+    entries: z.array(z.object({ date: z.string(), bodyMassKg: z.number() })),
+    unit: z.string(),
+    count: z.number(),
+    latestKg: z.number().nullable(),
+    changeKg: z.number().nullable(),
   };
 }
 
@@ -889,6 +920,10 @@ async function callMcpTool(accountId, params) {
     const data = withCalibratedStrain(await readUserData(accountId));
     return mcpToolOutput(workoutDetailsForMcp(data, String(args.workoutId || '')));
   }
+  if (name === 'get_weight_history') {
+    const data = withCalibratedStrain(await readUserData(accountId));
+    return mcpToolOutput(weightHistoryForMcp(data, args));
+  }
   throw new Error(`Unknown MCP tool: ${name}`);
 }
 
@@ -967,6 +1002,43 @@ function mcpTools() {
         type: 'object',
         properties: { workout: { type: 'object', additionalProperties: true } },
         required: ['workout'],
+        additionalProperties: false,
+      },
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    },
+    {
+      name: 'get_weight_history',
+      title: 'Get weight history',
+      description:
+        'Get body weight (kg) history entries by date. Set range to 7d/30d/90d/180d/365d, or provide from/to. Returns all history by default.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          from: { type: 'string', format: 'date-time' },
+          to: { type: 'string', format: 'date-time' },
+          range: { type: 'string', enum: ['7d', '30d', '90d', '180d', '365d'] },
+          limit: { type: 'integer', minimum: 1 },
+        },
+        additionalProperties: false,
+      },
+      outputSchema: {
+        type: 'object',
+        properties: {
+          entries: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: { date: { type: 'string' }, bodyMassKg: { type: 'number' } },
+              required: ['date', 'bodyMassKg'],
+              additionalProperties: false,
+            },
+          },
+          unit: { type: 'string' },
+          count: { type: 'number' },
+          latestKg: { type: ['number', 'null'] },
+          changeKg: { type: ['number', 'null'] },
+        },
+        required: ['entries', 'unit', 'count', 'latestKg', 'changeKg'],
         additionalProperties: false,
       },
       annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
@@ -1201,7 +1273,7 @@ function workoutDocuments(data, args) {
   const from = args.from
     ? numericTime(String(args.from))
     : args.all ? Number.NEGATIVE_INFINITY : Date.now() - 30 * 86_400_000;
-  const to = args.to ? numericTime(String(args.to)) : Number.POSITIVE_INFINITY;
+  const to = args.to ? numericTimeEndOfDay(String(args.to)) : Number.POSITIVE_INFINITY;
   return [...(data.workouts || [])]
     .filter((workout) => {
       const time = numericTime(workout.startTime || workout.date || '');
@@ -1229,7 +1301,7 @@ function workoutsInRange(workouts, args = {}) {
   const from = args.from
     ? numericTime(String(args.from))
     : String(args.all || '') === 'true' ? Number.NEGATIVE_INFINITY : Date.now() - 30 * 86_400_000;
-  const to = args.to ? numericTime(String(args.to)) : Number.POSITIVE_INFINITY;
+  const to = args.to ? numericTimeEndOfDay(String(args.to)) : Number.POSITIVE_INFINITY;
   return [...workouts]
     .filter((workout) => {
       const time = numericTime(workout.startTime || workout.date || '');
@@ -1248,6 +1320,39 @@ function workoutsForMcp(data, args = {}) {
       url: doc.url,
       metadata: doc.metadata,
     })),
+  };
+}
+
+const WEIGHT_RANGE_DAYS = { '7d': 7, '30d': 30, '90d': 90, '180d': 180, '365d': 365 };
+
+function weightHistoryForMcp(data, args = {}) {
+  const entries = [...(data.daily || [])]
+    .filter((day) => day?.date && Number.isFinite(Number(day.bodyMassKg)) && Number(day.bodyMassKg) > 0)
+    .map((day) => ({ date: day.date, bodyMassKg: Number(day.bodyMassKg) }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  const rangeDays = WEIGHT_RANGE_DAYS[String(args.range || '')];
+  const from = args.from
+    ? numericTime(String(args.from))
+    : rangeDays ? Date.now() - rangeDays * 86_400_000 : Number.NEGATIVE_INFINITY;
+  const to = args.to ? numericTimeEndOfDay(String(args.to)) : Number.POSITIVE_INFINITY;
+
+  const filtered = entries.filter((entry) => {
+    const time = numericTime(entry.date);
+    return !Number.isFinite(time) || (time >= from && time <= to);
+  });
+  const limited = args.limit ? filtered.slice(-Number(args.limit)) : filtered;
+
+  const first = limited[0] || null;
+  const latest = limited[limited.length - 1] || null;
+  return {
+    entries: limited,
+    unit: 'kg',
+    count: limited.length,
+    latestKg: latest ? latest.bodyMassKg : null,
+    changeKg: first && latest && limited.length > 1
+      ? roundToOneDecimal(latest.bodyMassKg - first.bodyMassKg)
+      : null,
   };
 }
 
@@ -1492,6 +1597,11 @@ function paceMinPerKm(workout) {
   const duration = Number(workout.durationMinutes || 0);
   if (distanceKm <= 0 || duration <= 0) return null;
   return roundToOneDecimal(duration / distanceKm);
+}
+
+function numericTimeEndOfDay(value) {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(String(value))) return numericTime(String(value) + 'T23:59:59.999Z');
+  return numericTime(value);
 }
 
 function numericTime(value) {

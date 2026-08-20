@@ -241,7 +241,9 @@ struct BiomarkersView: View {
                 BiomarkerRow(name: "Wrist temperature", value: model.summary.wristTemperatureC, unit: "°C")
             }
             Section("Body") {
-                BiomarkerRow(name: "Weight", value: model.summary.bodyMassKg, unit: "kg")
+                NavigationLink(destination: WeightHistoryView()) {
+                    BiomarkerRow(name: "Weight", value: model.summary.bodyMassKg, unit: "kg")
+                }
                 BiomarkerRow(name: "Height", value: model.summary.heightCm, unit: "cm")
                 BiomarkerRow(name: "Body fat", value: model.summary.bodyFatPercent, unit: "%")
             }

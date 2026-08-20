@@ -8,6 +8,13 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
+// Use a date within the default 30-day lookback window so this test does not
+// silently start failing as real time passes a hardcoded calendar date.
+const baseDate = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
+baseDate.setUTCHours(18, 0, 0, 0);
+const isoAt = (offsetMinutes = 0) => new Date(baseDate.getTime() + offsetMinutes * 60000).toISOString();
+
+
 test('connects, syncs, stores and exposes Progressa exercise details through MCP', async (t) => {
   const dataDir = await mkdtemp(path.join(os.tmpdir(), 'quantivita-progressa-flow-'));
   let workoutRequests = 0;
@@ -36,12 +43,12 @@ test('connects, syncs, stores and exposes Progressa exercise details through MCP
         reps: 10,
         rir: 4,
         is_warmup: true,
-        created_at: '2026-06-18T18:00:00Z',
-        workouts: { id: 'workout-1', title: 'Push day', created_at: '2026-06-18T18:00:00Z' },
+        created_at: isoAt(0),
+        workouts: { id: 'workout-1', title: 'Push day', created_at: isoAt(0) },
         exercises: { id: 'bench-press', name: 'Bench Press', default_muscles: 'Chest' },
         health_activity: {
           activity_type: 'Traditional Strength Training',
-          health_start: '2026-06-18T18:00:00Z', health_end: '2026-06-18T19:00:00Z', duration_secs: 3600,
+          health_start: isoAt(0), health_end: isoAt(60), duration_secs: 3600,
         },
       },
       {
@@ -52,12 +59,12 @@ test('connects, syncs, stores and exposes Progressa exercise details through MCP
         rir: 2,
         side: 'both',
         is_warmup: false,
-        created_at: '2026-06-18T18:03:00Z',
-        workouts: { id: 'workout-1', title: 'Push day', created_at: '2026-06-18T18:00:00Z' },
+        created_at: isoAt(3),
+        workouts: { id: 'workout-1', title: 'Push day', created_at: isoAt(0) },
         exercises: { id: 'bench-press', name: 'Bench Press', default_muscles: 'Chest' },
         health_activity: {
           activity_type: 'Traditional Strength Training',
-          health_start: '2026-06-18T18:00:00Z', health_end: '2026-06-18T19:00:00Z', duration_secs: 3600,
+          health_start: isoAt(0), health_end: isoAt(60), duration_secs: 3600,
         },
       },
     ]));
@@ -108,7 +115,7 @@ test('connects, syncs, stores and exposes Progressa exercise details through MCP
       profile: {}, daily: [],
       workouts: [{
         id: 'health-activity-1', source: 'healthkit', title: 'Strength Training',
-        startTime: '2026-06-18T18:00:00Z', durationMinutes: 60, energyKcal: 300,
+        startTime: isoAt(0), durationMinutes: 60, energyKcal: 300,
       }],
     },
     auth,

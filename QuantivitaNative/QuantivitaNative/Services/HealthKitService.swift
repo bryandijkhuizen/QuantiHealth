@@ -249,6 +249,17 @@ final class HealthKitService {
         }
     }
 
+    func weightHistory(since: Date) async -> [WeightSample] {
+        guard let type = HKQuantityType.quantityType(forIdentifier: .bodyMass) else { return [] }
+        let samples: [HKQuantitySample] = await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(sampleType: type, predicate: HKQuery.predicateForSamples(withStart: since, end: nil), limit: HKObjectQueryNoLimit, sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]) { _, samples, _ in
+                continuation.resume(returning: (samples as? [HKQuantitySample]) ?? [])
+            }
+            store.execute(query)
+        }
+        return samples.map { WeightSample(date: $0.startDate, kg: $0.quantity.doubleValue(for: .gramUnit(with: .kilo))) }
+    }
+
     private func sleepSummary(since: Date) async -> (total: Double, rem: Double, core: Double, deep: Double, awake: Double, inBed: Double) {
         guard let type = HKCategoryType.categoryType(forIdentifier: .sleepAnalysis) else { return (0, 0, 0, 0, 0, 0) }
         return await withCheckedContinuation { continuation in

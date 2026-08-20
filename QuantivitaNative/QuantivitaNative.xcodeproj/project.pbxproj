@@ -33,6 +33,7 @@
 		5B1D2C3D4E5F60718293A4B5 /* SleepSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E1E1F0A0B0C0D0E0F101112 /* SleepSummaryTests.swift */; };
 		6C2E3D4E5F60718293A4B5C6 /* StravaErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F2F203A0B0C0D0E0F101213 /* StravaErrorTests.swift */; };
 		ACFB7CEAE580E8E8F1931DBC /* WorkoutFidelityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AED0CBDDBA4CCEC1E11607E /* WorkoutFidelityTests.swift */; };
+		B31A65F8D92E4CA0A7F11301 /* WeightHistoryViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B31A65F8D92E4CA0A7F11302 /* WeightHistoryViewTests.swift */; };
 		AE09EFE694F4CC3C4B49B963 /* HealthModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B29878363AE5FA57EB112582 /* HealthModels.swift */; };
 		C30E2EC3DD56E02EB128FD5D /* ScoringParityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2226C7BC89E02EDC97489AAD /* ScoringParityTests.swift */; };
 		CC4300C994ACA973F25B4194 /* WorkoutFidelity.swift in Sources */ = {isa = PBXBuildFile; fileRef = B926A1620C6B6A0D6D66984D /* WorkoutFidelity.swift */; };
@@ -92,6 +93,7 @@
 		AE955107E75A98599383F26A /* SettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = Views/SettingsView.swift; sourceTree = "<group>"; };
 		B10C8BE875C03E91BDDB9EC1 /* SecureAccountStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SecureAccountStore.swift; path = Services/SecureAccountStore.swift; sourceTree = "<group>"; };
 		B29878363AE5FA57EB112582 /* HealthModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HealthModels.swift; path = Models/HealthModels.swift; sourceTree = "<group>"; };
+		B31A65F8D92E4CA0A7F11302 /* WeightHistoryViewTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WeightHistoryViewTests.swift; sourceTree = "<group>"; };
 		B8459556EA9A10C2A9C9BA35 /* DashboardViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DashboardViews.swift; path = Views/DashboardViews.swift; sourceTree = "<group>"; };
 		9F8E7D6C5B4A3921F0E1D2C3 /* WeightHistoryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WeightHistoryView.swift; path = Views/WeightHistoryView.swift; sourceTree = "<group>"; };
 		B926A1620C6B6A0D6D66984D /* WorkoutFidelity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WorkoutFidelity.swift; path = Services/WorkoutFidelity.swift; sourceTree = "<group>"; };
@@ -217,6 +219,7 @@
 				2E96CE0FF8F77DE279B5B9B3 /* StravaTCXBuilderTests.swift */,
 				217EF5B9F8A299D74A545260 /* WorkoutDecodingTests.swift */,
 				0AED0CBDDBA4CCEC1E11607E /* WorkoutFidelityTests.swift */,
+				B31A65F8D92E4CA0A7F11302 /* WeightHistoryViewTests.swift */,
 			);
 			name = QuantivitaNativeTests;
 			path = QuantivitaNativeTests;
@@ -369,6 +372,7 @@
 				1E6D16375480C96469589CDB /* StravaTCXBuilderTests.swift in Sources */,
 				298D18BD522CA0E72A30F750 /* WorkoutDecodingTests.swift in Sources */,
 				ACFB7CEAE580E8E8F1931DBC /* WorkoutFidelityTests.swift in Sources */,
+				B31A65F8D92E4CA0A7F11301 /* WeightHistoryViewTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

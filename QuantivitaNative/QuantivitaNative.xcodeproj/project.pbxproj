@@ -21,6 +21,7 @@
 		5D233D2459CECBE67A2AEDA1 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 982236CBED6419BB12B09377 /* Foundation.framework */; };
 		5DE99E1D2D4EAD16395E1D11 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 17FFCDF56905A594D53D01FB /* Assets.xcassets */; };
 		64A184829D70008F1715E462 /* DashboardViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8459556EA9A10C2A9C9BA35 /* DashboardViews.swift */; };
+		1A2B3C4D5E6F7089A1B2C3D4 /* WeightHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F8E7D6C5B4A3921F0E1D2C3 /* WeightHistoryView.swift */; };
 		65DA66D21B96402624FAE75C /* QuantivitaNativeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0796975A52D16EFD960F1CC6 /* QuantivitaNativeApp.swift */; };
 		6CF953A35A55FDDAAA3C667D /* AppearanceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E16AA9366F308CD4CE6339B9 /* AppearanceModels.swift */; };
 		6ECD42D87FE9D93036D5EE00 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B06EABBF4BE144C49C9B0BD /* RootView.swift */; };
@@ -92,6 +93,7 @@
 		B10C8BE875C03E91BDDB9EC1 /* SecureAccountStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SecureAccountStore.swift; path = Services/SecureAccountStore.swift; sourceTree = "<group>"; };
 		B29878363AE5FA57EB112582 /* HealthModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HealthModels.swift; path = Models/HealthModels.swift; sourceTree = "<group>"; };
 		B8459556EA9A10C2A9C9BA35 /* DashboardViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DashboardViews.swift; path = Views/DashboardViews.swift; sourceTree = "<group>"; };
+		9F8E7D6C5B4A3921F0E1D2C3 /* WeightHistoryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WeightHistoryView.swift; path = Views/WeightHistoryView.swift; sourceTree = "<group>"; };
 		B926A1620C6B6A0D6D66984D /* WorkoutFidelity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WorkoutFidelity.swift; path = Services/WorkoutFidelity.swift; sourceTree = "<group>"; };
 		BDE1D05AAEE425695A0875F8 /* ProgressaAuthTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProgressaAuthTests.swift; sourceTree = "<group>"; };
 		C0FCF3C386E488A82C232D76 /* HealthKitService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HealthKitService.swift; path = Services/HealthKitService.swift; sourceTree = "<group>"; };
@@ -151,6 +153,7 @@
 				B926A1620C6B6A0D6D66984D /* WorkoutFidelity.swift */,
 				C4E41970A5435ECE8CFDD589 /* AppModel.swift */,
 				B8459556EA9A10C2A9C9BA35 /* DashboardViews.swift */,
+				9F8E7D6C5B4A3921F0E1D2C3 /* WeightHistoryView.swift */,
 				0B06EABBF4BE144C49C9B0BD /* RootView.swift */,
 				AE955107E75A98599383F26A /* SettingsView.swift */,
 				A603DAAF02C69D860A7AFD7B /* WorkoutViews.swift */,
@@ -389,6 +392,7 @@
 				CC4300C994ACA973F25B4194 /* WorkoutFidelity.swift in Sources */,
 				5667E4105C46075D76C2DBEF /* AppModel.swift in Sources */,
 				64A184829D70008F1715E462 /* DashboardViews.swift in Sources */,
+				1A2B3C4D5E6F7089A1B2C3D4 /* WeightHistoryView.swift in Sources */,
 				6ECD42D87FE9D93036D5EE00 /* RootView.swift in Sources */,
 				3A12C1A1D41C098996FECF2A /* SettingsView.swift in Sources */,
 				1931F3B74DDE920DA5767F68 /* WorkoutViews.swift in Sources */,

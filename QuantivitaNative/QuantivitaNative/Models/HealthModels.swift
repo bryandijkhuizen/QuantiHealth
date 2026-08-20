@@ -36,6 +36,12 @@ struct HealthSummary: Codable, Equatable {
     }
 }
 
+struct WeightSample: Codable, Identifiable, Equatable {
+    let date: Date
+    let kg: Double
+    var id: Date { date }
+}
+
 struct Workout: Codable, Identifiable, Hashable {
     let id: String
     var source = "healthkit"

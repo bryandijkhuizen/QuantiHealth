@@ -123,7 +123,10 @@ final class APIClient {
         return try decoder.decode(WorkoutResponse.self, from: data).workouts
     }
 
-    func ingest(account: QuantivitaAccount, summary: HealthSummary, recovery: RecoveryResult, workouts: [Workout]) async throws {
+    func ingest(
+        account: QuantivitaAccount, summary: HealthSummary, recovery: RecoveryResult,
+        workouts: [Workout], weightHistory: [WeightSample] = []
+    ) async throws {
         let date = Date.now.formatted(.iso8601.year().month().day().dateSeparator(.dash))
         let daily: [String: Any] = [
             "date": date, "recoveryScore": recovery.score,
@@ -150,13 +153,19 @@ final class APIClient {
             "bodyFatPercent": summary.bodyFatPercent,
         ]
         let payload: [String: Any] = [
-            "profile": profile, "daily": [daily],
+            "profile": profile, "daily": [daily] + weightDailyRows(weightHistory),
             "workouts": workouts.map(workoutPayload),
         ]
         _ = try await request(
             path: "/api/users/\(escaped(account.accountId))/ingest", method: "POST",
             token: account.syncToken, body: payload
         ) as EmptyResponse
+    }
+
+    private func weightDailyRows(_ samples: [WeightSample]) -> [[String: Any]] {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withFullDate]
+        return samples.map { ["date": formatter.string(from: $0.date), "bodyMassKg": $0.kg] }
     }
 
     private func workoutPayload(_ workout: Workout) -> [String: Any] {

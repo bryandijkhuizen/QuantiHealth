@@ -72,6 +72,9 @@ struct SettingsView: View {
                 LabeledContent("Weight", value: measurement(model.summary.bodyMassKg, unit: "kg"))
                 LabeledContent("Height", value: measurement(model.summary.heightCm, unit: "cm"))
                 LabeledContent("Body fat", value: measurement(model.summary.bodyFatPercent, unit: "%"))
+                NavigationLink { WeightHistoryView() } label: {
+                    Label("Weight history", systemImage: "chart.line.uptrend.xyaxis")
+                }
                 NavigationLink { HealthProfileEditor() } label: {
                     Label("Edit health profile", systemImage: "person.text.rectangle")
                 }

@@ -8,6 +8,7 @@ final class AppModel: ObservableObject {
     @Published var stage: Stage = .authentication
     @Published var summary = HealthSummary()
     @Published var workouts: [Workout] = []
+    @Published var weightHistory: [WeightSample] = []
     @Published var recovery = RecoveryScorer.calculate(summary: HealthSummary())
     @Published var dailyScores = DailyScoringEngine.calculate(summary: HealthSummary(), workouts: [])
     @Published var isLoading = false
@@ -252,6 +253,10 @@ final class AppModel: ObservableObject {
         message = "Health profile saved."
     }
 
+    func loadWeightHistory() async {
+        weightHistory = await health.weightHistory(since: .distantPast)
+    }
+
     func connectProgressa() async {
         guard let account else { return }
         isLoading = true
@@ -429,8 +434,18 @@ final class AppModel: ObservableObject {
 
     private func syncHomeserver() async {
         guard let account else { return }
-        do { try await api.ingest(account: account, summary: summary, recovery: recovery, workouts: workouts) }
-        catch where !Self.isCancellation(error) { message = "Health data is saved locally; server sync is unavailable." }
+        let syncedThroughKey = "weightHistorySyncedThrough.\(account.accountId)"
+        let since = UserDefaults.standard.object(forKey: syncedThroughKey) as? Date ?? .distantPast
+        let newWeightSamples = await health.weightHistory(since: since)
+        do {
+            try await api.ingest(
+                account: account, summary: summary, recovery: recovery, workouts: workouts,
+                weightHistory: newWeightSamples
+            )
+            if let latest = newWeightSamples.last?.date {
+                UserDefaults.standard.set(latest, forKey: syncedThroughKey)
+            }
+        } catch where !Self.isCancellation(error) { message = "Health data is saved locally; server sync is unavailable." }
         catch {}
     }
 

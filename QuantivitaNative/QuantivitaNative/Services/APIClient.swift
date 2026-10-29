@@ -2,11 +2,13 @@ import Foundation
 
 enum APIError: LocalizedError {
     case invalidResponse
+    case payloadTooLarge
     case server(Int, String)
 
     var errorDescription: String? {
         switch self {
         case .invalidResponse: return "The server returned an invalid response."
+        case .payloadTooLarge: return "One Health export exceeds the upload limit. No data was removed; try a smaller date range."
         case let .server(code, message): return "Server error \(code): \(message)"
         }
     }
@@ -152,14 +154,43 @@ final class APIClient {
             "bodyMassKg": summary.bodyMassKg, "heightCm": summary.heightCm,
             "bodyFatPercent": summary.bodyFatPercent,
         ]
-        let payload: [String: Any] = [
-            "profile": profile, "daily": [daily] + weightDailyRows(weightHistory),
-            "workouts": workouts.map(workoutPayload),
+        var payload: [String: Any] = [
+            "profile": profile, "daily": [daily] + weightDailyRows(weightHistory) + (summary.vo2MaxSamples ?? []).map {
+                ["date": $0.time.formatted(.iso8601.year().month().day().dateSeparator(.dash)),
+                 "vo2Max": $0.millilitersPerKilogramPerMinute,
+                 "vo2MaxMeasuredAt": $0.time.ISO8601Format(), "vo2MaxSource": "healthkit"] as [String: Any]
+            },
+            "workouts": [],
         ]
-        _ = try await request(
-            path: "/api/users/\(escaped(account.accountId))/ingest", method: "POST",
-            token: account.syncToken, body: payload
-        ) as EmptyResponse
+        for batch in try Self.workoutBatches(workouts.map(workoutPayload), base: payload) {
+            payload["workouts"] = batch
+            _ = try await request(
+                path: "/api/users/\(escaped(account.accountId))/ingest", method: "POST",
+                token: account.syncToken, body: payload
+            ) as EmptyResponse
+        }
+    }
+
+    /// Count each row once. Keep comfortably below Express's 2 MB body limit.
+    static func workoutBatches(_ rows: [[String: Any]], base: [String: Any], limit: Int = 1_500_000) throws -> [[[String: Any]]] {
+        let overhead = try JSONSerialization.data(withJSONObject: base).count
+        guard overhead < limit else { throw APIError.payloadTooLarge }
+        var batches: [[[String: Any]]] = []
+        var batch: [[String: Any]] = []
+        var bytes = overhead
+        for row in rows {
+            let size = try JSONSerialization.data(withJSONObject: row).count
+            guard overhead + size <= limit else { throw APIError.payloadTooLarge }
+            if bytes + size + (batch.isEmpty ? 0 : 1) > limit {
+                batches.append(batch)
+                batch = []
+                bytes = overhead
+            }
+            bytes += size + (batch.isEmpty ? 0 : 1)
+            batch.append(row)
+        }
+        if !batch.isEmpty || batches.isEmpty { batches.append(batch) }
+        return batches
     }
 
     private func weightDailyRows(_ samples: [WeightSample]) -> [[String: Any]] {
@@ -168,7 +199,7 @@ final class APIClient {
         return samples.map { ["date": formatter.string(from: $0.date), "bodyMassKg": $0.kg] }
     }
 
-    private func workoutPayload(_ workout: Workout) -> [String: Any] {
+    func workoutPayload(_ workout: Workout) -> [String: Any] {
         var payload: [String: Any] = [
             "id": workout.id, "source": workout.source,
             "externalWorkoutId": workout.externalWorkoutId as Any,
@@ -185,6 +216,14 @@ final class APIClient {
            let data = try? JSONEncoder().encode(details),
            let object = try? JSONSerialization.jsonObject(with: data) {
             payload["progressaDetails"] = object
+        }
+        payload["elevationGainMeters"] = workout.elevationGainMeters
+        payload["sourceName"] = workout.sourceName
+        payload["sourceBundleIdentifier"] = workout.sourceBundleIdentifier
+        if let telemetry = workout.telemetry,
+           let data = try? JSONEncoder().encode(telemetry),
+           let fields = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            payload.merge(fields) { _, measured in measured }
         }
         return payload
     }

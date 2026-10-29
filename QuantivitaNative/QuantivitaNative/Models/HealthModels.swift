@@ -28,12 +28,18 @@ struct HealthSummary: Codable, Equatable {
     var birthMonth = 0
     var birthDay = 0
     var biologicalSex = 0
+    var vo2MaxSamples: [VO2MaxSample]?
 
     var hasSleepData: Bool { sleepMinutes > 0 }
     var hasAnyHealthData: Bool {
         steps > 0 || activeEnergyKcal > 0 || hrvMs > 0 || restingHeartBpm > 0 ||
         sleepMinutes > 0 || bodyMassKg > 0 || dietaryEnergyKcal > 0
     }
+}
+
+struct VO2MaxSample: Codable, Equatable {
+    let time: Date
+    let millilitersPerKilogramPerMinute: Double
 }
 
 struct WeightSample: Codable, Identifiable, Equatable {
@@ -62,6 +68,7 @@ struct Workout: Codable, Identifiable, Hashable {
     var progressaWorkoutTitle: String?
     var healthActivityLink: HealthActivityLink?
     var progressaDetails: ProgressaDetails?
+    var telemetry: WorkoutTelemetry?
 
     var isProgressa: Bool { source == "progressa" }
     var effectiveDurationMinutes: Double {
@@ -77,7 +84,7 @@ struct Workout: Codable, Identifiable, Hashable {
         case id, source, externalWorkoutId, title, startTime, durationMinutes, energyKcal
         case totalEnergyKcal, distanceMeters, elevationGainMeters, averageHeartRate
         case maxHeartRate, typeCode, hasRoute, sourceName, sourceBundleIdentifier
-        case progressaWorkoutTitle, healthActivityLink, progressaDetails
+        case progressaWorkoutTitle, healthActivityLink, progressaDetails, telemetry
     }
 
     init(
@@ -132,7 +139,26 @@ struct Workout: Codable, Identifiable, Hashable {
         progressaWorkoutTitle = try values.decodeIfPresent(String.self, forKey: .progressaWorkoutTitle)
         healthActivityLink = try values.decodeIfPresent(HealthActivityLink.self, forKey: .healthActivityLink)
         progressaDetails = try values.decodeIfPresent(ProgressaDetails.self, forKey: .progressaDetails)
+        telemetry = try values.decodeIfPresent(WorkoutTelemetry.self, forKey: .telemetry)
     }
+}
+
+/// Optional measured data; absent permissions/data remain absent rather than zero.
+struct WorkoutTelemetry: Codable, Hashable {
+    struct HeartRate: Codable, Hashable { let time: String; let bpm: Double }
+    struct Speed: Codable, Hashable { let time: String; let metersPerSecond: Double }
+    struct Event: Codable, Hashable { let type: String; let startTime: String; let endTime: String }
+    struct Split: Codable, Hashable { let distanceMeters: Double; let durationSeconds: Double }
+    var heartRateSamples: [HeartRate] = []
+    var speedSamples: [Speed] = []
+    var workoutEvents: [Event] = []
+    var kilometerSplits: [Split] = []
+    var splitMethod: String?
+    var cadenceStepsPerMinute: Double?
+    var runningPowerWatts: Double?
+    var runningStrideLengthMeters: Double?
+    var runningGroundContactTimeMilliseconds: Double?
+    var runningVerticalOscillationMeters: Double?
 }
 
 struct HealthActivityLink: Codable, Hashable {

@@ -1,9 +1,44 @@
 import XCTest
 import CoreLocation
 import HealthKit
+import WorkoutKit
 @testable import QuantivitaNative
 
 final class WorkoutDecodingTests: XCTestCase {
+    func testAppleIntervalPlanPreservesPurposesGoalsAndRepeats() throws {
+        guard #available(iOS 17.0, *) else { throw XCTSkip("WorkoutKit requires iOS 17") }
+        let custom = CustomWorkout(activity: .running,
+            warmup: WorkoutStep(goal: .distance(4, .kilometers)),
+            blocks: [IntervalBlock(steps: [IntervalStep(.recovery, goal: .time(1, .minutes)), IntervalStep(.work, goal: .time(6, .minutes))], iterations: 2)],
+            cooldown: WorkoutStep(goal: .open))
+        let plan = WorkoutPlan(.custom(custom))
+        let exported = try XCTUnwrap(HealthKitService.exportWorkoutPlan(plan))
+        XCTAssertEqual(exported.id, plan.id.uuidString)
+        XCTAssertEqual(exported.warmup?.purpose, "warmup")
+        XCTAssertEqual(exported.warmup?.targetDistanceMeters, 4000)
+        XCTAssertEqual(exported.blocks.first?.iterations, 2)
+        XCTAssertEqual(exported.blocks.first?.steps.map(\.purpose), ["recovery", "work"])
+        XCTAssertEqual(exported.blocks.first?.steps.last?.targetSeconds, 360)
+        XCTAssertNil(exported.cooldown?.targetSeconds)
+        var workout = Workout(id: "planned", title: "Run", startTime: .now, durationMinutes: 48, energyKcal: 500)
+        var telemetry = WorkoutTelemetry()
+        telemetry.appleWorkoutPlan = exported
+        workout.telemetry = telemetry
+        let payload = APIClient().workoutPayload(workout)
+        let data = try JSONSerialization.data(withJSONObject: payload)
+        let wire = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        let fields = try XCTUnwrap(wire["appleWorkoutPlan"] as? [String: Any])
+        XCTAssertEqual(fields["source"] as? String, "healthkit-workout-plan")
+        XCTAssertNil(fields["actualDurationSeconds"])
+        XCTAssertEqual(try JSONDecoder().decode(AppleWorkoutPlan.self, from: JSONEncoder().encode(exported)), exported)
+    }
+
+    func testAppleWarmupCooldownOnlyIsNotAnIntervalBlock() throws {
+        guard #available(iOS 17.0, *) else { throw XCTSkip("WorkoutKit requires iOS 17") }
+        let plan = WorkoutPlan(.custom(CustomWorkout(activity: .running, warmup: WorkoutStep(goal: .open))))
+        XCTAssertTrue(try XCTUnwrap(HealthKitService.exportWorkoutPlan(plan)).blocks.isEmpty)
+    }
+
     func testDashboardCacheRoundTripWithOptionalHealthMetrics() throws {
         var summary = HealthSummary()
         summary.steps = 111

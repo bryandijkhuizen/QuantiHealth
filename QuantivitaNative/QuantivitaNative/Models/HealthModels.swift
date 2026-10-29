@@ -159,6 +159,26 @@ struct WorkoutTelemetry: Codable, Hashable {
     var runningStrideLengthMeters: Double?
     var runningGroundContactTimeMilliseconds: Double?
     var runningVerticalOscillationMeters: Double?
+    var appleWorkoutPlan: AppleWorkoutPlan?
+    var appleWorkoutPlanStatus: String?
+}
+
+struct AppleWorkoutPlan: Codable, Hashable {
+    struct Step: Codable, Hashable {
+        let purpose: String
+        var targetSeconds: Double?
+        var targetDistanceMeters: Double?
+        var targetEnergyKcal: Double?
+    }
+    struct Block: Codable, Hashable {
+        let iterations: Int
+        let steps: [Step]
+    }
+    var source = "healthkit-workout-plan"
+    let id: String
+    let blocks: [Block]
+    let warmup: Step?
+    let cooldown: Step?
 }
 
 struct HealthActivityLink: Codable, Hashable {

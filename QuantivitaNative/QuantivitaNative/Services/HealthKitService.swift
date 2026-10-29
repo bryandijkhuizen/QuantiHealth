@@ -1,4 +1,5 @@
 import HealthKit
+import WorkoutKit
 import CoreLocation
 import Foundation
 
@@ -381,6 +382,14 @@ final class HealthKitService {
 
     private func trainingTelemetry(for workout: HKWorkout) async -> WorkoutTelemetry {
         var result = WorkoutTelemetry()
+        if #available(iOS 17.0, *) {
+            do {
+                if let plan = try await workout.workoutPlan {
+                    result.appleWorkoutPlan = Self.exportWorkoutPlan(plan)
+                    result.appleWorkoutPlanStatus = result.appleWorkoutPlan == nil ? "notCustom" : "available"
+                } else { result.appleWorkoutPlanStatus = "noPlan" }
+            } catch { result.appleWorkoutPlanStatus = "readFailed" }
+        } else { result.appleWorkoutPlanStatus = "unsupportedOS" }
         let heart = await trainingSamples(.heartRate, for: workout)
         let speed = await trainingSamples(.runningSpeed, for: workout)
         // Keep evenly spaced real observations, including both endpoints. No GPS is exported.
@@ -422,6 +431,37 @@ final class HealthKitService {
             result.cadenceStepsPerMinute = steps / (workout.duration / 60)
         }
         return result
+    }
+
+    @available(iOS 17.0, *)
+    static func exportWorkoutPlan(_ plan: WorkoutKit.WorkoutPlan) -> AppleWorkoutPlan? {
+        guard case let .custom(custom) = plan.workout, custom.activity == .running else { return nil }
+        func step(_ input: WorkoutKit.WorkoutStep, purpose: String) -> AppleWorkoutPlan.Step {
+            var output = AppleWorkoutPlan.Step(purpose: purpose)
+            switch input.goal {
+            case let .time(value, unit):
+                let seconds = Measurement(value: value, unit: unit).converted(to: .seconds).value
+                if seconds.isFinite && seconds > 0 { output.targetSeconds = seconds }
+            case let .distance(value, unit):
+                let meters = Measurement(value: value, unit: unit).converted(to: .meters).value
+                if meters.isFinite && meters > 0 { output.targetDistanceMeters = meters }
+            case let .energy(value, unit):
+                let kcal = Measurement(value: value, unit: unit).converted(to: .kilocalories).value
+                if kcal.isFinite && kcal > 0 { output.targetEnergyKcal = kcal }
+            default: break
+            }
+            return output
+        }
+        return AppleWorkoutPlan(
+            id: plan.id.uuidString,
+            blocks: custom.blocks.filter { $0.iterations > 0 && !$0.steps.isEmpty }.map { block in
+                .init(iterations: block.iterations, steps: block.steps.map {
+                    step($0.step, purpose: $0.purpose == .work ? "work" : "recovery")
+                })
+            },
+            warmup: custom.warmup.map { step($0, purpose: "warmup") },
+            cooldown: custom.cooldown.map { step($0, purpose: "cooldown") }
+        )
     }
 
     private func vo2MaxHistory(since: Date) async -> [VO2MaxSample] {

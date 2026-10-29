@@ -5,6 +5,19 @@ No second importer is required. This branch does not install an app on a physica
 
 ## Exported measurements
 
+On iOS 17+, the app reads `HKWorkout.workoutPlan` through WorkoutKit. Custom running
+plans export `appleWorkoutPlan` with source `healthkit-workout-plan`, plan UUID,
+warmup/cooldown, blocks, iteration counts, and explicit work/recovery purposes.
+Targets are normalized to seconds, meters or kcal; open targets stay unspecified.
+These are planned goals, not measured results for each interval. Generic segment
+events and kilometer splits do not establish a structured interval workout.
+
+`appleWorkoutPlanStatus` reports available/noPlan/notCustom/readFailed/unsupportedOS.
+The presence of an Intervals screen in Fitness has not yet been verified to yield
+a non-nil public WorkoutKit plan for every historical Apple-created workout. Device
+resync must confirm this; missing plans are never reconstructed from physiology.
+Reference: https://developer.apple.com/documentation/healthkit/hkworkout/workoutplan
+
 Running workouts include optional workout-associated heart-rate and running-speed
 observations (at most 240 evenly spaced real observations per series), lap/segment
 and pause/resume events, and available HealthKit average running power, stride length,

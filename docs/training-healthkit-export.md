@@ -9,6 +9,7 @@ The app also exports `appleWorkoutActivities`: ended, recorded HealthKit activit
 with UUID, start/end, active duration and an optional recorded walking/running
 distance. Missing statistics stay nil; measured zero distance stays zero. Raw
 activity-type codes are explicitly named `activityTypeRaw`, not Quantivita's enum.
+Read authorization now includes walking/running distance for recorded block metrics.
 `workoutEndTime` supports recognizing a partly completed final step. Workout marker
 events are retained, with only interval/segment/lap/step/purpose metadata keys.
 

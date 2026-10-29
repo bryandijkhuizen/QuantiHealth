@@ -21,6 +21,7 @@ final class HealthKitService {
         guard HKHealthStore.isHealthDataAvailable() else { throw HealthKitError.unavailable }
         let reads = Set([
             HKObjectType.quantityType(forIdentifier: .stepCount),
+            HKObjectType.quantityType(forIdentifier: .distanceWalkingRunning),
             HKObjectType.quantityType(forIdentifier: .activeEnergyBurned),
             HKObjectType.quantityType(forIdentifier: .basalEnergyBurned),
             HKObjectType.quantityType(forIdentifier: .dietaryEnergyConsumed),
@@ -439,7 +440,7 @@ final class HealthKitService {
     static func intervalMetadata(_ metadata: [String: Any]?) -> [String: String]? {
         var values: [String: String] = [:]
         for (key, value) in metadata ?? [:] {
-            guard ["interval", "segment", "lap", "step", "purpose"].contains(where: key.lowercased().contains) else { continue }
+            guard ["interval", "segment", "lap", "step", "purpose", "marker", "activity"].contains(where: key.lowercased().contains) else { continue }
             if value is String || value is NSNumber || value is HKQuantity {
                 values[key] = String(describing: value)
             }

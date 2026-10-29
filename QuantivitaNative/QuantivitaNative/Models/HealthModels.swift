@@ -147,7 +147,21 @@ struct Workout: Codable, Identifiable, Hashable {
 struct WorkoutTelemetry: Codable, Hashable {
     struct HeartRate: Codable, Hashable { let time: String; let bpm: Double }
     struct Speed: Codable, Hashable { let time: String; let metersPerSecond: Double }
-    struct Event: Codable, Hashable { let type: String; let startTime: String; let endTime: String }
+    struct Event: Codable, Hashable {
+        let type: String
+        let startTime: String
+        let endTime: String
+        var metadata: [String: String]?
+    }
+    struct Activity: Codable, Hashable {
+        let id: String
+        let startTime: String
+        let endTime: String
+        let durationSeconds: Double
+        let activityTypeRaw: UInt
+        let distanceMeters: Double?
+        let metadata: [String: String]?
+    }
     struct Split: Codable, Hashable { let distanceMeters: Double; let durationSeconds: Double }
     var heartRateSamples: [HeartRate] = []
     var speedSamples: [Speed] = []
@@ -161,6 +175,8 @@ struct WorkoutTelemetry: Codable, Hashable {
     var runningVerticalOscillationMeters: Double?
     var appleWorkoutPlan: AppleWorkoutPlan?
     var appleWorkoutPlanStatus: String?
+    var appleWorkoutActivities: [Activity]?
+    var workoutEndTime: String?
 }
 
 struct AppleWorkoutPlan: Codable, Hashable {

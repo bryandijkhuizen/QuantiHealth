@@ -382,6 +382,8 @@ final class HealthKitService {
 
     private func trainingTelemetry(for workout: HKWorkout) async -> WorkoutTelemetry {
         var result = WorkoutTelemetry()
+        result.appleWorkoutActivities = Self.exportWorkoutActivities(workout.workoutActivities)
+        result.workoutEndTime = workout.endDate.ISO8601Format()
         if #available(iOS 17.0, *) {
             do {
                 if let plan = try await workout.workoutPlan {
@@ -410,11 +412,12 @@ final class HealthKitService {
             case .resume: name = "resume"
             case .lap: name = "lap"
             case .segment: name = "segment"
+            case .marker: name = "marker"
             case .motionPaused: name = "motionPaused"
             case .motionResumed: name = "motionResumed"
             default: return nil
             }
-            return .init(type: name, startTime: event.dateInterval.start.ISO8601Format(), endTime: event.dateInterval.end.ISO8601Format())
+            return .init(type: name, startTime: event.dateInterval.start.ISO8601Format(), endTime: event.dateInterval.end.ISO8601Format(), metadata: Self.intervalMetadata(event.metadata))
         }
         func average(_ identifier: HKQuantityTypeIdentifier, unit: HKUnit) -> Double? {
             guard let type = HKQuantityType.quantityType(forIdentifier: identifier),
@@ -431,6 +434,31 @@ final class HealthKitService {
             result.cadenceStepsPerMinute = steps / (workout.duration / 60)
         }
         return result
+    }
+
+    static func intervalMetadata(_ metadata: [String: Any]?) -> [String: String]? {
+        var values: [String: String] = [:]
+        for (key, value) in metadata ?? [:] {
+            guard ["interval", "segment", "lap", "step", "purpose"].contains(where: key.lowercased().contains) else { continue }
+            if value is String || value is NSNumber || value is HKQuantity {
+                values[key] = String(describing: value)
+            }
+        }
+        return values.isEmpty ? nil : values
+    }
+
+    static func exportWorkoutActivities(_ activities: [HKWorkoutActivity]) -> [WorkoutTelemetry.Activity] {
+        let distanceType = HKQuantityType.quantityType(forIdentifier: .distanceWalkingRunning)
+        return activities.compactMap { activity in
+            guard let end = activity.endDate, end > activity.startDate,
+                  activity.duration.isFinite, activity.duration > 0 else { return nil }
+            let meters = distanceType.flatMap { activity.statistics(for: $0)?.sumQuantity()?.doubleValue(for: .meter()) }
+            return .init(id: activity.uuid.uuidString, startTime: activity.startDate.ISO8601Format(),
+                         endTime: end.ISO8601Format(), durationSeconds: activity.duration,
+                         activityTypeRaw: activity.workoutConfiguration.activityType.rawValue,
+                         distanceMeters: meters.flatMap { $0.isFinite && $0 >= 0 ? $0 : nil },
+                         metadata: intervalMetadata(activity.metadata))
+        }.sorted { $0.startTime < $1.startTime }
     }
 
     @available(iOS 17.0, *)

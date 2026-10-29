@@ -5,6 +5,19 @@ No second importer is required. This branch does not install an app on a physica
 
 ## Exported measurements
 
+The app also exports `appleWorkoutActivities`: ended, recorded HealthKit activities
+with UUID, start/end, active duration and an optional recorded walking/running
+distance. Missing statistics stay nil; measured zero distance stays zero. Raw
+activity-type codes are explicitly named `activityTypeRaw`, not Quantivita's enum.
+`workoutEndTime` supports recognizing a partly completed final step. Workout marker
+events are retained, with only interval/segment/lap/step/purpose metadata keys.
+
+These recorded activities may represent the whole workout rather than individual
+intervals. The dashboard must reject a single whole-workout activity or mismatched
+plan/activity sequences, and must not synthesize block results from planned goals.
+When separate activities match the plan order and goals, pace and km/h use the
+recorded distance divided by active duration. Device data must confirm availability.
+
 On iOS 17+, the app reads `HKWorkout.workoutPlan` through WorkoutKit. Custom running
 plans export `appleWorkoutPlan` with source `healthkit-workout-plan`, plan UUID,
 warmup/cooldown, blocks, iteration counts, and explicit work/recovery purposes.

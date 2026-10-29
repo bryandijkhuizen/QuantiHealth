@@ -78,6 +78,10 @@ jobs:
       - name: Show Xcode version
         run: xcodebuild -version
 
+      - name: Test Quantivita before distribution
+        if: matrix.app.id == 'quantivita-native'
+        run: bash scripts/test_quantivita_native.sh
+
       - name: Check required secrets
         shell: bash
         run: |

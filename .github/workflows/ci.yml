@@ -10,6 +10,14 @@ on:
       - develop
 
 jobs:
+  quantivita-native:
+    name: Quantivita Native Tests
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run native unit tests
+        run: bash scripts/test_quantivita_native.sh
+
   quantivita-server:
     name: Quantivita Server Tests
     runs-on: ubuntu-latest

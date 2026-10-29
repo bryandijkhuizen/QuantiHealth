@@ -7,10 +7,10 @@
       "platform": "native-ios",
       "scheme": "QuantivitaNative",
       "tagPrefix": "quantivita-native-ios-v",
-      "currentVersion": "0.1.5",
+      "currentVersion": "0.2.0",
       "bundleIdentifier": "com.bryandijkh.quantivita",
       "teamId": "85RT3VH5D8",
-      "testCommand": "xcodebuild test -project QuantivitaNative.xcodeproj -scheme QuantivitaNative -destination 'platform=iOS Simulator,name=iPhone 16'"
+      "testCommand": "bash ../scripts/test_quantivita_native.sh"
     },
     {
       "id": "progressa-native",

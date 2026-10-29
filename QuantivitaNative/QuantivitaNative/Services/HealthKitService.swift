@@ -28,6 +28,12 @@ final class HealthKitService {
             HKObjectType.quantityType(forIdentifier: .dietaryProtein),
             HKObjectType.quantityType(forIdentifier: .dietaryFatTotal),
             HKObjectType.quantityType(forIdentifier: .heartRate),
+            HKObjectType.quantityType(forIdentifier: .runningSpeed),
+            HKObjectType.quantityType(forIdentifier: .runningPower),
+            HKObjectType.quantityType(forIdentifier: .runningStrideLength),
+            HKObjectType.quantityType(forIdentifier: .runningGroundContactTime),
+            HKObjectType.quantityType(forIdentifier: .runningVerticalOscillation),
+            HKObjectType.quantityType(forIdentifier: .vo2Max),
             HKObjectType.quantityType(forIdentifier: .heartRateVariabilitySDNN),
             HKObjectType.quantityType(forIdentifier: .restingHeartRate),
             HKObjectType.quantityType(forIdentifier: .respiratoryRate),
@@ -99,6 +105,9 @@ final class HealthKitService {
             biologicalSex: profile.sex
         )
         summary.oxygenSaturation = min(summary.oxygenSaturation, 100)
+        summary.vo2MaxSamples = await vo2MaxHistory(since: days.flatMap {
+            calendar.date(byAdding: .day, value: -$0, to: .now)
+        } ?? .distantPast)
         return await (summary, workouts)
     }
 
@@ -360,8 +369,129 @@ final class HealthKitService {
                 typeCode: workout.workoutActivityType.quantivitaCode, hasRoute: !route.isEmpty,
                 sourceName: source.name, sourceBundleIdentifier: source.bundleIdentifier
             ))
+            if workout.workoutActivityType == .running {
+                var telemetry = await trainingTelemetry(for: workout)
+                telemetry.kilometerSplits = Self.routeSplits(route, events: workout.workoutEvents ?? [])
+                if !telemetry.kilometerSplits.isEmpty { telemetry.splitMethod = "gps-distance-active-time" }
+                result[result.count - 1].telemetry = telemetry
+            }
         }
         return result
+    }
+
+    private func trainingTelemetry(for workout: HKWorkout) async -> WorkoutTelemetry {
+        var result = WorkoutTelemetry()
+        let heart = await trainingSamples(.heartRate, for: workout)
+        let speed = await trainingSamples(.runningSpeed, for: workout)
+        // Keep evenly spaced real observations, including both endpoints. No GPS is exported.
+        func bounded(_ samples: [HKQuantitySample]) -> [HKQuantitySample] {
+            guard samples.count > 240 else { return samples }
+            return (0..<240).map { samples[$0 * (samples.count - 1) / 239] }
+        }
+        result.heartRateSamples = bounded(heart).map {
+            .init(time: $0.startDate.ISO8601Format(), bpm: $0.quantity.doubleValue(for: HKUnit.count().unitDivided(by: .minute())))
+        }
+        result.speedSamples = bounded(speed).map {
+            .init(time: $0.startDate.ISO8601Format(), metersPerSecond: $0.quantity.doubleValue(for: .meter().unitDivided(by: .second())))
+        }
+        result.workoutEvents = (workout.workoutEvents ?? []).compactMap { event in
+            let name: String
+            switch event.type {
+            case .pause: name = "pause"
+            case .resume: name = "resume"
+            case .lap: name = "lap"
+            case .segment: name = "segment"
+            case .motionPaused: name = "motionPaused"
+            case .motionResumed: name = "motionResumed"
+            default: return nil
+            }
+            return .init(type: name, startTime: event.dateInterval.start.ISO8601Format(), endTime: event.dateInterval.end.ISO8601Format())
+        }
+        func average(_ identifier: HKQuantityTypeIdentifier, unit: HKUnit) -> Double? {
+            guard let type = HKQuantityType.quantityType(forIdentifier: identifier),
+                  let value = workout.statistics(for: type)?.averageQuantity()?.doubleValue(for: unit),
+                  value.isFinite, value > 0 else { return nil }
+            return value
+        }
+        result.runningPowerWatts = average(.runningPower, unit: .watt())
+        result.runningStrideLengthMeters = average(.runningStrideLength, unit: .meter())
+        result.runningGroundContactTimeMilliseconds = average(.runningGroundContactTime, unit: .secondUnit(with: .milli))
+        result.runningVerticalOscillationMeters = average(.runningVerticalOscillation, unit: .meter())
+        if let type = HKQuantityType.quantityType(forIdentifier: .stepCount), workout.duration > 0,
+           let steps = workout.statistics(for: type)?.sumQuantity()?.doubleValue(for: .count()), steps > 0 {
+            result.cadenceStepsPerMinute = steps / (workout.duration / 60)
+        }
+        return result
+    }
+
+    private func vo2MaxHistory(since: Date) async -> [VO2MaxSample] {
+        guard let type = HKQuantityType.quantityType(forIdentifier: .vo2Max) else { return [] }
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(sampleType: type, predicate: HKQuery.predicateForSamples(withStart: since, end: nil),
+                                      limit: HKObjectQueryNoLimit, sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]) { _, samples, _ in
+                let unit = HKUnit(from: "ml/kg*min")
+                let values = (samples as? [HKQuantitySample] ?? []).compactMap { sample -> VO2MaxSample? in
+                    let value = sample.quantity.doubleValue(for: unit)
+                    guard value.isFinite, value > 0 else { return nil }
+                    return .init(time: sample.startDate, millilitersPerKilogramPerMinute: value)
+                }
+                continuation.resume(returning: values)
+            }
+            store.execute(query)
+        }
+    }
+
+    /// GPS-derived complete kilometers only. Sparse routes are omitted, never bridged.
+    /// Boundary times are interpolated between actual neighboring GPS observations.
+    static func routeSplits(_ route: [CLLocation], events: [HKWorkoutEvent]) -> [WorkoutTelemetry.Split] {
+        let points = route.filter { $0.horizontalAccuracy >= 0 && $0.horizontalAccuracy <= 30 }
+        guard points.count > 1 else { return [] }
+        let pauses = events.filter { [.pause, .resume, .motionPaused, .motionResumed].contains($0.type) }
+            .sorted { $0.dateInterval.start < $1.dateInterval.start }
+        var paused = false
+        var eventIndex = 0
+        var distance = 0.0
+        var seconds = 0.0
+        var splits: [WorkoutTelemetry.Split] = []
+        for (a, b) in zip(points, points.dropFirst()) {
+            let dt = b.timestamp.timeIntervalSince(a.timestamp)
+            guard dt > 0, dt <= 30 else { return [] }
+            while eventIndex < pauses.count, pauses[eventIndex].dateInterval.start <= a.timestamp {
+                paused = pauses[eventIndex].type == .pause || pauses[eventIndex].type == .motionPaused
+                eventIndex += 1
+            }
+            // A boundary crossing a pause cannot provide a reliable active split.
+            if eventIndex < pauses.count, pauses[eventIndex].dateInterval.start < b.timestamp { return [] }
+            if paused { continue }
+            var meters = b.distance(from: a)
+            guard meters.isFinite, meters / dt <= 15 else { return [] }
+            var duration = dt
+            while distance + meters >= 1000 {
+                let fraction = (1000 - distance) / meters
+                let elapsed = duration * fraction
+                splits.append(.init(distanceMeters: 1000, durationSeconds: seconds + elapsed))
+                meters -= 1000 - distance
+                duration -= elapsed
+                distance = 0
+                seconds = 0
+            }
+            distance += meters
+            seconds += duration
+        }
+        return splits
+    }
+
+    private func trainingSamples(_ identifier: HKQuantityTypeIdentifier, for workout: HKWorkout) async -> [HKQuantitySample] {
+        guard let type = HKQuantityType.quantityType(forIdentifier: identifier) else { return [] }
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(sampleType: type, predicate: HKQuery.predicateForObjects(from: workout), limit: HKObjectQueryNoLimit,
+                                      sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: true)]) { _, samples, _ in
+                continuation.resume(returning: (samples as? [HKQuantitySample] ?? []).filter {
+                    ($0.metadata?["com.bryandijkh.quantivita.syntheticAverageHeartRate"] as? Bool) != true
+                })
+            }
+            store.execute(query)
+        }
     }
 
     private func heartRateMetrics(for workout: HKWorkout) async -> (average: Double, maximum: Double) {

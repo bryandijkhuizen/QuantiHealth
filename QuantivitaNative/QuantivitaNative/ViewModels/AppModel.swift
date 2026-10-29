@@ -216,6 +216,7 @@ final class AppModel: ObservableObject {
         isLoading = true
         defer { isLoading = false }
         do {
+            try await health.requestAuthorization()
             let result = try await health.load(days: nil)
             guard generation == sessionGeneration, account != nil else { return }
             summary = result.0
@@ -224,8 +225,7 @@ final class AppModel: ObservableObject {
             dailyScores = DailyScoringEngine.calculate(summary: summary, workouts: workouts)
             recovery = dailyScores.recovery
             if let account { cache.save(accountId: account.accountId, summary: summary, workouts: workouts) }
-            await syncHomeserver()
-            message = "All workouts synced."
+            if await syncHomeserver() { message = "All workouts synced." }
         } catch where !Self.isCancellation(error) { message = error.localizedDescription }
         catch {}
     }
@@ -432,8 +432,9 @@ final class AppModel: ObservableObject {
         stravaConnected = status.connected && status.canUpload
     }
 
-    private func syncHomeserver() async {
-        guard let account else { return }
+    @discardableResult
+    private func syncHomeserver() async -> Bool {
+        guard let account else { return false }
         let syncedThroughKey = "weightHistorySyncedThrough.\(account.accountId)"
         let since = UserDefaults.standard.object(forKey: syncedThroughKey) as? Date ?? .distantPast
         let newWeightSamples = await health.weightHistory(since: since)
@@ -445,8 +446,11 @@ final class AppModel: ObservableObject {
             if let latest = newWeightSamples.last?.date {
                 UserDefaults.standard.set(latest, forKey: syncedThroughKey)
             }
-        } catch where !Self.isCancellation(error) { message = "Health data is saved locally; server sync is unavailable." }
-        catch {}
+            return true
+        } catch where !Self.isCancellation(error) {
+            message = "Health data is saved locally; server sync is unavailable."
+            return false
+        } catch { return false }
     }
 
     /// Strava failure strings arrive as HTML (e.g. `duplicate of <a ...>Lunch Run</a>`).

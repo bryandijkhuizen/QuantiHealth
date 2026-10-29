@@ -37,6 +37,13 @@
          </BuildableReference>
       </MacroExpansion>
       <Testables>
+         <TestableReference skipped = "NO">
+            <BuildableReference BuildableIdentifier = "primary"
+               BlueprintIdentifier = "F4E407536FF2FEFAE00E1719"
+               BuildableName = "QuantivitaNativeTests.xctest"
+               BlueprintName = "QuantivitaNativeTests"
+               ReferencedContainer = "container:QuantivitaNative.xcodeproj"/>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

@@ -5,6 +5,26 @@ import WorkoutKit
 @testable import QuantivitaNative
 
 final class WorkoutDecodingTests: XCTestCase {
+    func testRecordedActivityExportPreservesDurationWithoutInventingDistance() throws {
+        let config = HKWorkoutConfiguration()
+        config.activityType = .running
+        let start = Date(timeIntervalSince1970: 1_700_000_000)
+        let activity = HKWorkoutActivity(workoutConfiguration: config, start: start, end: start.addingTimeInterval(360), metadata: ["IntervalPurpose": "work", "UnrelatedPrivateField": "omit"])
+        let unfinished = HKWorkoutActivity(workoutConfiguration: config, start: start, end: nil, metadata: nil)
+        let rows = HealthKitService.exportWorkoutActivities([unfinished, activity])
+        XCTAssertEqual(rows.count, 1)
+        let row = try XCTUnwrap(rows.first)
+        XCTAssertEqual(row.durationSeconds, 360)
+        XCTAssertNil(row.distanceMeters)
+        XCTAssertEqual(row.metadata?["IntervalPurpose"], "work")
+        XCTAssertNil(row.metadata?["UnrelatedPrivateField"])
+        var telemetry = WorkoutTelemetry()
+        telemetry.appleWorkoutActivities = rows
+        telemetry.workoutEvents = [.init(type: "marker", startTime: start.ISO8601Format(), endTime: start.ISO8601Format(), metadata: ["IntervalPurpose":"work"])]
+        let data = try JSONEncoder().encode(telemetry)
+        XCTAssertEqual(try JSONDecoder().decode(WorkoutTelemetry.self, from: data), telemetry)
+    }
+
     func testAppleIntervalPlanPreservesPurposesGoalsAndRepeats() throws {
         guard #available(iOS 17.0, *) else { throw XCTSkip("WorkoutKit requires iOS 17") }
         let custom = CustomWorkout(activity: .running,

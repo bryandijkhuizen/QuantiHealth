@@ -17,3 +17,6 @@ interval workouts must still be verified from the resulting device sync.
 
 Validation: 10 focused native tests, full native GitHub CI, 28 dashboard/server tests
 and a mobile UI test for measured pace/speed, missing data and overflow passed.
+
+Quantivita CI and distribution select the supported macOS 15 / Xcode 26.3 runner
+image. Native tests remain mandatory before uploading the signed archive.

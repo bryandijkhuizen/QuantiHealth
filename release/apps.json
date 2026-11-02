@@ -19,10 +19,11 @@
       "platform": "native-ios",
       "scheme": "ProgressaNative",
       "tagPrefix": "progressa-native-ios-v",
-      "currentVersion": "2.0.2",
+      "currentVersion": "2.1.0",
       "bundleIdentifier": "com.bryandijkh.progressa",
+      "extensionBundleIdentifiers": ["com.bryandijkh.progressa.liveactivity"],
       "teamId": "85RT3VH5D8",
-      "testCommand": "xcodebuild test -project ProgressaNative.xcodeproj -scheme ProgressaNative -destination 'platform=iOS Simulator,name=iPhone 16'"
+      "testCommand": "bash ../scripts/test_progressa_native.sh"
     }
   ]
 }

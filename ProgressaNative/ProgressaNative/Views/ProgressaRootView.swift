@@ -6,9 +6,19 @@ import SwiftUI
 struct ProgressaRootView: View {
     @EnvironmentObject private var model: ProgressaModel
 
+    static var isWorkoutPreview: Bool {
+        #if DEBUG
+        ProcessInfo.processInfo.arguments.contains("--workout-preview")
+        #else
+        false
+        #endif
+    }
+
     var body: some View {
         Group {
-            if model.isRecoveringPassword { ProgressaResetPasswordView() }
+            if Self.isWorkoutPreview {
+                NavigationStack { ProgressaWorkoutsView() }
+            } else if model.isRecoveringPassword { ProgressaResetPasswordView() }
             else if model.session == nil { ProgressaLoginView() }
             else {
                 switch model.profileState {
@@ -152,15 +162,19 @@ private struct ProgressaResetPasswordView: View {
 }
 
 private struct ProgressaTabs: View {
+    @EnvironmentObject private var model: ProgressaModel
+    @State private var selection = 0
     @AppStorage("progressa.accent") private var accent = ProgressaAccent.presets[0].id
     var body: some View {
-        TabView {
-            NavigationStack { ProgressaFeedView() }.tabItem { Label("Feed", systemImage: "bubble.left.and.bubble.right") }
-            NavigationStack { ProgressaWorkoutsView() }.tabItem { Label("Workouts", systemImage: "dumbbell") }
-            NavigationStack { ProgressaStatsView() }.tabItem { Label("Stats", systemImage: "chart.bar") }
-            NavigationStack { ProgressaMeasurementsView() }.tabItem { Label("Measure", systemImage: "ruler") }
-            NavigationStack { ProgressaMoreView() }.tabItem { Label("Me", systemImage: "person") }
+        TabView(selection: $selection) {
+            NavigationStack { ProgressaFeedView() }.tabItem { Label("Feed", systemImage: "bubble.left.and.bubble.right") }.tag(0)
+            NavigationStack { ProgressaWorkoutsView() }.tabItem { Label("Workouts", systemImage: "dumbbell") }.tag(1)
+            NavigationStack { ProgressaStatsView() }.tabItem { Label("Stats", systemImage: "chart.bar") }.tag(2)
+            NavigationStack { ProgressaMeasurementsView() }.tabItem { Label("Measure", systemImage: "ruler") }.tag(3)
+            NavigationStack { ProgressaMoreView() }.tabItem { Label("Me", systemImage: "person") }.tag(4)
         }.tint(ProgressaAccent.color(for: accent))
+            .onChange(of: model.workoutRoute) { route in if route != nil { selection = 1 } }
+            .onAppear { if model.workoutRoute != nil { selection = 1 } }
     }
 }
 
@@ -175,6 +189,23 @@ private struct ProgressaWorkoutsView: View {
 
     var body: some View {
         List {
+            if let active = model.activeWorkout {
+                Section {
+                    NavigationLink(value: active.id) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Label("Continue Workout", systemImage: "dumbbell.fill").font(.headline)
+                            Text(active.title)
+                            if let start = active.startedAt { Text(start, style: .timer).monospacedDigit().foregroundStyle(.secondary) }
+                        }.padding(.vertical, 4)
+                    }
+                }
+            } else {
+                Section {
+                    Button { Task { await startWorkout() } } label: {
+                        Label("Start Workout", systemImage: "play.fill").frame(maxWidth: .infinity, minHeight: 44)
+                    }.buttonStyle(.borderedProminent).disabled(isStartingWorkout || model.isChangingWorkout)
+                }
+            }
             if case let .cached(savedAt) = model.workoutSyncState {
                 Section {
                     Label(
@@ -184,7 +215,7 @@ private struct ProgressaWorkoutsView: View {
                 }
             }
             Section {
-                ForEach(model.workouts) { workout in
+                ForEach(model.workouts.filter { !$0.isInProgress }) { workout in
                     NavigationLink(value: workout.id) {
                         VStack(alignment: .leading) {
                             Text(workout.title).font(.headline)
@@ -204,24 +235,19 @@ private struct ProgressaWorkoutsView: View {
         )) {
             if let id = createdWorkoutID { ProgressaWorkoutDetail(workoutId: id) }
         }
-        .refreshable { await model.refreshWorkouts() }
-        .overlay {
-            if model.workouts.isEmpty && !model.isLoading {
-                VStack(spacing: 8) {
-                    Image(systemName: "dumbbell").font(.largeTitle)
-                    Text("No workouts").font(.headline)
-                    Text("Create a workout or pull to refresh.").foregroundStyle(.secondary)
-                }
-            }
+        .onChange(of: model.workoutRoute) { id in
+            if let id { createdWorkoutID = id; model.workoutRoute = nil }
         }
+        .onAppear { if let id = model.workoutRoute { createdWorkoutID = id; model.workoutRoute = nil } }
+        .refreshable { await model.refreshWorkouts() }
         .toolbar {
             if isStartingWorkout {
                 ProgressView()
             } else {
                 Menu {
                     // Primary path: the workout exists immediately, no creation form to fill in first.
-                    Button { Task { await startWorkout() } } label: { Label("Add workout", systemImage: "plus") }
-                    Button { showingCreate = true } label: { Label("New workout from routine…", systemImage: "list.bullet.rectangle") }
+                    Button { Task { await startWorkout() } } label: { Label(model.activeWorkout == nil ? "Start Workout" : "Continue Workout", systemImage: "play.fill") }
+                    Button { showingCreate = true } label: { Label("New workout from routine…", systemImage: "list.bullet.rectangle") }.disabled(model.activeWorkout != nil)
                     Button { showingRecorder = true } label: { Label("Record outdoor workout", systemImage: "location.fill") }
                     Button { importAround = .now; showingHealthImport = true } label: { Label("Import from Apple Health", systemImage: "heart") }
                 } label: { Image(systemName: "plus") }
@@ -274,6 +300,9 @@ private struct ProgressaWorkoutDetail: View {
     @State private var showingAddExercise = false
     @State private var setTarget: SetEditTarget?
     @State private var showingHealthPicker = false
+    @State private var showingSequence = false
+    @State private var showingTimes = false
+    @State private var editMode: EditMode = .inactive
 
     private var workout: ProgressaWorkout? { model.workouts.first { $0.id == workoutId } }
 
@@ -281,8 +310,18 @@ private struct ProgressaWorkoutDetail: View {
         List {
             if let workout {
                 Section {
-                    LabeledContent("Date", value: workout.createdAt.formatted(date: .long, time: .shortened))
-                    LabeledContent("Source", value: workout.source)
+                    if let start = workout.startedAt {
+                        LabeledContent("Started", value: start.formatted(date: .abbreviated, time: .shortened))
+                        if let end = workout.endedAt {
+                            LabeledContent("Finished", value: end.formatted(date: .abbreviated, time: .shortened))
+                            LabeledContent("Duration", value: Duration.seconds(end.timeIntervalSince(start)).formatted(.time(pattern: .hourMinute)))
+                        } else {
+                            HStack { Label("In Progress", systemImage: "timer"); Spacer(); Text(start, style: .timer).monospacedDigit() }
+                        }
+                    } else {
+                        LabeledContent("Date", value: workout.createdAt.formatted(date: .long, time: .shortened))
+                    }
+                    Button("Edit Workout Times") { showingTimes = true }
                     if let location = workout.location { LabeledContent("Location", value: location) }
                 }
                 if workout.exercises.isEmpty {
@@ -313,12 +352,21 @@ private struct ProgressaWorkoutDetail: View {
                         }
                     } header: {
                         HStack {
-                            Text(exercise.name)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(exercise.name)
+                                if let sequence = exercise.sequenceID, let round = exercise.sequenceRound {
+                                    let ids = workout.exercises.compactMap(\.sequenceID).reduce(into: [String]()) { ids, id in
+                                        if !ids.contains(id) { ids.append(id) }
+                                    }
+                                    Text("Sequence \((ids.firstIndex(of: sequence) ?? 0) + 1) · Round \(round)")
+                                        .font(.caption).foregroundStyle(.secondary)
+                                }
+                            }
                             Text("· \(exercise.sets.count) set\(exercise.sets.count == 1 ? "" : "s")").foregroundStyle(.secondary)
                             Spacer()
                             Button(role: .destructive) { Task { await model.deleteExercise(workoutId: workoutId, blockId: exercise.id) } } label: {
                                 Image(systemName: "trash")
-                            }.buttonStyle(.borderless)
+                            }.buttonStyle(.borderless).accessibilityLabel("Delete \(exercise.name)").frame(minWidth: 44, minHeight: 44)
                         }
                     }
                 }
@@ -335,16 +383,39 @@ private struct ProgressaWorkoutDetail: View {
                 }
             }
         }
+        .safeAreaInset(edge: .bottom) {
+            if let workout, workout.isInProgress, let start = workout.startedAt {
+                Button {
+                    Task { _ = await model.saveWorkoutTiming(id: workoutId, startedAt: start, endedAt: .now) }
+                } label: {
+                    HStack { if model.isChangingWorkout { ProgressView() }; Label("Finish Workout", systemImage: "checkmark.circle.fill") }
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                }
+                .buttonStyle(.borderedProminent).disabled(model.isChangingWorkout)
+                .padding(.horizontal).padding(.vertical, 8).background(.bar)
+            }
+        }
         .navigationTitle(workout?.title ?? "Workout")
         .task { await model.refreshWorkout(id: workoutId); await model.loadHealthMetadata(workoutId: workoutId) }
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
-                Button { showingEdit = true } label: { Image(systemName: "pencil") }.disabled(workout == nil)
-                EditButton()
-                Button { showingAddExercise = true } label: { Image(systemName: "plus") }.disabled(workout == nil)
-                Button("Delete", role: .destructive) { confirmingDelete = true }.disabled(workout == nil)
+                Menu {
+                    Button("Add Exercise", systemImage: "plus") { showingAddExercise = true }
+                    Button("Add Sequence", systemImage: "repeat") { showingSequence = true }
+                } label: { Image(systemName: "plus").accessibilityLabel("Add exercises") }.disabled(workout == nil)
+                Menu {
+                    Button("Edit Workout", systemImage: "pencil") { showingEdit = true }
+                    Button("Edit Times", systemImage: "clock") { showingTimes = true }
+                    Button(editMode.isEditing ? "Done Reordering" : "Reorder Exercises", systemImage: "arrow.up.arrow.down") {
+                        editMode = editMode.isEditing ? .inactive : .active
+                    }
+                    Button("Delete Workout", systemImage: "trash", role: .destructive) { confirmingDelete = true }
+                } label: { Image(systemName: "ellipsis").accessibilityLabel("Workout options") }.disabled(workout == nil)
             }
         }
+        .environment(\.editMode, $editMode)
+        .sheet(isPresented: $showingTimes) { if let workout { WorkoutTimesEditor(workout: workout) } }
+        .sheet(isPresented: $showingSequence) { WorkoutSequenceEditor(workoutID: workoutId) }
         .sheet(isPresented: $showingEdit) { if let workout { ProgressaWorkoutEditor(workout: workout) } }
         .sheet(isPresented: $showingAddExercise) {
             ProgressaExercisePicker { input in
@@ -361,6 +432,91 @@ private struct ProgressaWorkoutDetail: View {
             Button("Delete workout", role: .destructive) {
                 Task { if await model.deleteWorkout(id: workoutId) { dismiss() } }
             }
+        }
+    }
+}
+
+private struct WorkoutTimesEditor: View {
+    @EnvironmentObject private var model: ProgressaModel
+    @Environment(\.dismiss) private var dismiss
+    let workout: ProgressaWorkout
+    @State private var start: Date
+    @State private var end: Date
+    @State private var finished: Bool
+
+    init(workout: ProgressaWorkout) {
+        self.workout = workout
+        _start = State(initialValue: workout.startedAt ?? workout.createdAt)
+        _end = State(initialValue: workout.endedAt ?? max(workout.createdAt, .now))
+        _finished = State(initialValue: !workout.isInProgress)
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                DatePicker("Started", selection: $start, in: ...Date.now)
+                Toggle("Finished", isOn: $finished)
+                if finished { DatePicker("Finished", selection: $end, in: start...max(start, .now)) }
+                if !finished { Text("Without an end time, this workout stays in progress.").foregroundStyle(.secondary) }
+            }
+            .navigationTitle("Workout Times")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        Task { if await model.saveWorkoutTiming(id: workout.id, startedAt: start, endedAt: finished ? end : nil) { dismiss() } }
+                    }.disabled(model.isChangingWorkout || (finished && end < start))
+                }
+            }
+        }
+    }
+}
+
+private struct WorkoutSequenceEditor: View {
+    @EnvironmentObject private var model: ProgressaModel
+    @Environment(\.dismiss) private var dismiss
+    let workoutID: String
+    @State private var exercises: [ProgressaExerciseInput] = []
+    @State private var rounds = 3
+    @State private var picking = false
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    Stepper("\(rounds) rounds", value: $rounds, in: 1...20)
+                } footer: { Text("Complete these exercises in order, then repeat. Log your sets as you go.") }
+                Section("Exercises in Each Round") {
+                    ForEach(Array(exercises.enumerated()), id: \.element.id) { index, input in
+                        HStack { Text("\(index + 1)").foregroundStyle(.secondary); Text(input.exercise.name) }
+                    }
+                    .onDelete { exercises.remove(atOffsets: $0) }
+                    .onMove { exercises.move(fromOffsets: $0, toOffset: $1) }
+                    Button("Choose Exercise", systemImage: "plus") { picking = true }.disabled(exercises.count >= 12)
+                }
+                if exercises.count >= 2 {
+                    Section("Preview") {
+                        Text("\(exercises.map { $0.exercise.name }.joined(separator: " → "))")
+                        Text("Repeat \(rounds) times · \(rounds * exercises.count) exercise blocks").foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .navigationTitle("Add Sequence")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() }.disabled(model.isChangingWorkout) }
+                ToolbarItem(placement: .primaryAction) { EditButton() }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Add") {
+                        Task {
+                            if await model.addSequence(workoutId: workoutID, exercises: exercises.map(\.exercise), rounds: rounds) { dismiss() }
+                        }
+                    }.disabled(exercises.count < 2 || model.isChangingWorkout)
+                }
+            }
+            .sheet(isPresented: $picking) {
+                ProgressaExercisePicker(configureSets: false) { input in exercises.append(input); picking = false }
+            }
+            .interactiveDismissDisabled(model.isChangingWorkout)
         }
     }
 }
@@ -546,6 +702,7 @@ private struct ProgressaExercisePicker: View {
     @State private var customName = ""
     @State private var customWeightType: ProgressaWeightType = .standard
     @State private var isCreatingCustom = false
+    var configureSets = true
     let onSave: (ProgressaExerciseInput) -> Void
 
     private var trimmedQuery: String { query.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -553,6 +710,18 @@ private struct ProgressaExercisePicker: View {
     var body: some View {
         NavigationStack(path: $path) {
             Form {
+                Section {
+                    HStack {
+                        Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
+                        TextField("Search exercises", text: $query)
+                            .textInputAutocapitalization(.never).autocorrectionDisabled()
+                            .accessibilityIdentifier("exerciseSearch")
+                        if !query.isEmpty {
+                            Button { query = "" } label: { Image(systemName: "xmark.circle.fill") }
+                                .accessibilityLabel("Clear search").buttonStyle(.borderless).frame(minWidth: 44, minHeight: 44)
+                        }
+                    }
+                }
                 Section("Exercise") {
                     if trimmedQuery.isEmpty {
                         Label("Search for an exercise by name.", systemImage: "magnifyingglass")
@@ -563,7 +732,10 @@ private struct ProgressaExercisePicker: View {
                         Text("No exercises match “\(trimmedQuery)”.").foregroundStyle(.secondary)
                     } else {
                         ForEach(results) { exercise in
-                            NavigationLink(value: exercise) {
+                            Button {
+                                if configureSets { path.append(exercise) }
+                                else { onSave(ProgressaExerciseInput(exercise: exercise, sets: [])) }
+                            } label: {
                                 VStack(alignment: .leading) {
                                     Text(exercise.name).foregroundStyle(.primary)
                                     if let group = exercise.muscleGroup { Text(group).font(.caption).foregroundStyle(.secondary) }
@@ -572,7 +744,7 @@ private struct ProgressaExercisePicker: View {
                         }
                     }
                 }
-                Section("Custom exercise") {
+                DisclosureGroup("Create Custom Exercise") {
                     TextField("Exercise name", text: $customName)
                     Picker("Weight type", selection: $customWeightType) {
                         Text("Standard").tag(ProgressaWeightType.standard)
@@ -584,7 +756,8 @@ private struct ProgressaExercisePicker: View {
                             isCreatingCustom = true
                             if let created = await model.createCustomExercise(name: customName, weightType: customWeightType) {
                                 customName = ""
-                                path.append(created)
+                                if configureSets { path.append(created) }
+                                else { onSave(ProgressaExerciseInput(exercise: created, sets: [])) }
                             }
                             isCreatingCustom = false
                         }
@@ -592,13 +765,14 @@ private struct ProgressaExercisePicker: View {
                 }
             }
             .navigationTitle("Add exercise")
-            .searchable(text: $query, prompt: "Search exercises")
             .task(id: query) {
-                guard !trimmedQuery.isEmpty else { results = []; return }
+                guard !trimmedQuery.isEmpty else { results = []; isSearching = false; return }
                 isSearching = true
                 try? await Task.sleep(for: .milliseconds(250))
                 guard !Task.isCancelled else { return }
-                results = await model.searchExercises(trimmedQuery)
+                let found = await model.searchExercises(trimmedQuery)
+                guard !Task.isCancelled else { return }
+                results = found
                 isSearching = false
             }
             .navigationDestination(for: ProgressaExerciseLibraryItem.self) { exercise in

@@ -8,9 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		03AEED05BEEB864C400C3586 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 604D6CDDDF933D0A01FAF530 /* PrivacyInfo.xcprivacy */; };
+		03D06DFB3FDAEF0DC277171D /* ProgressaLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC218D8C72401B883F7105A9 /* ProgressaLiveActivity.swift */; };
 		04C28B4F7C8688BAA1BC01B1 /* AppearanceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC47C6342BA2C053348B1527 /* AppearanceModels.swift */; };
 		0C29BB08DFB0D61056D4803E /* AvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AE0E6C787837528264C9828 /* AvatarView.swift */; };
 		0C8D5DD41E69174837C46EDD /* NotificationModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09CF71AF87B4244BB809C0EC /* NotificationModels.swift */; };
+		105CCDE7456CA1732CDD62EF /* ProgressaLiveActivity.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 4C76689D556609E25EFF31B1 /* ProgressaLiveActivity.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		11353DEBB29CE4F16DCA4D1B /* RoutineService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58618628FE30A19BFC15FCBC /* RoutineService.swift */; };
 		1482CA7568F6632B41DF43C1 /* WorkoutAPIContractTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67DC5E4CEA798B23728F42A3 /* WorkoutAPIContractTests.swift */; };
 		1DD1B3CF2CB029E80AD48554 /* SocialModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 018FC36AEC6CE80879C5FA16 /* SocialModel.swift */; };
@@ -33,8 +35,10 @@
 		6F1EABD27D3EF03945BE88BC /* AvatarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4265F05575A2F9BF062C212 /* AvatarService.swift */; };
 		72697AABC632DE78C7379666 /* StatsMeasurementsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E6723549716056241303506 /* StatsMeasurementsService.swift */; };
 		73DC6339212F0C7A3445A57D /* RoutineViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC85A92630A683858A3BB920 /* RoutineViews.swift */; };
+		7535D1702F78FA9B297CF3F8 /* WorkoutActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82E2C216D2F6982FD8D36ACC /* WorkoutActivityAttributes.swift */; };
 		75C5430E7A8A44E616406452 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A47E744DD725DDD7008B0173 /* Assets.xcassets */; };
 		7609FF89B9D15D8D4F05703C /* ProgressaRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57B8421EFC7AE67F1CCC96CB /* ProgressaRootView.swift */; };
+		7708D6ED66B3EEBC52B773BB /* WorkoutLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA66351878EDDB6BB0A41D7E /* WorkoutLiveActivity.swift */; };
 		79891D6951E68AA67EC935FA /* SocialFeedContractTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38F5BF7CF9CA739FA9261AA4 /* SocialFeedContractTests.swift */; };
 		7AA09A14D7D6DB6966F9E186 /* ProgressaModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38F633E5F83FD62A1AD4D425 /* ProgressaModel.swift */; };
 		7E0B7D49702ED7F9375AA677 /* RoutineModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8E233B827AC44BB0D07BCA0 /* RoutineModels.swift */; };
@@ -48,6 +52,8 @@
 		A9792F92687D1D7F23F3FBA6 /* ProgressaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BAFB8C16F3604F7F56C8B59 /* ProgressaClient.swift */; };
 		B8C9F05C6640CD7ED01F63F9 /* AuthProfileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6052AF080634CE7597B5A90 /* AuthProfileTests.swift */; };
 		C7E03FD9D321BB3CA430DA18 /* HealthModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69D72C8B97FD436DBA529C5B /* HealthModels.swift */; };
+		C82C3AD766A9020EEEF64F5F /* WorkoutActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82E2C216D2F6982FD8D36ACC /* WorkoutActivityAttributes.swift */; };
+		CA17C5A6033326D51B3BF48C /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49157F8A015C9E393BCEC7F0 /* Foundation.framework */; };
 		CFBAD721FE13FE63C34D3B1D /* ProgressaOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51D4088E3C9859EFECC19A25 /* ProgressaOnboardingView.swift */; };
 		D4DB69419D5934CACA2A0E09 /* NotificationSliceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C223812B2673A916D9E374B /* NotificationSliceTests.swift */; };
 		DD235213FAE1336037A8E8B2 /* CustomExercisesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 785F9F4C5DEE41CCA6D955FA /* CustomExercisesView.swift */; };
@@ -62,6 +68,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		42920B67E2F03C9F4D15B163 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EA7CF347B733DC1F4CA3BE5C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EE521BC878FCC575E79D957D;
+			remoteInfo = ProgressaLiveActivity;
+		};
 		DFC503C4BEF0606AD8C4705E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = EA7CF347B733DC1F4CA3BE5C /* Project object */;
@@ -70,6 +83,20 @@
 			remoteInfo = ProgressaNative;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		9E84046C8A7487C35D0BC25A /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				105CCDE7456CA1732CDD62EF /* ProgressaLiveActivity.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		00ECB5F570529EFD6F486B1C /* NotificationViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NotificationViews.swift; path = Views/NotificationViews.swift; sourceTree = "<group>"; };
@@ -83,6 +110,7 @@
 		3AE0E6C787837528264C9828 /* AvatarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AvatarView.swift; path = Views/AvatarView.swift; sourceTree = "<group>"; };
 		3D23F7DAE2AD39F23C289D31 /* AppearanceView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppearanceView.swift; path = Views/AppearanceView.swift; sourceTree = "<group>"; };
 		49157F8A015C9E393BCEC7F0 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		4C76689D556609E25EFF31B1 /* ProgressaLiveActivity.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ProgressaLiveActivity.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		4E6723549716056241303506 /* StatsMeasurementsService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StatsMeasurementsService.swift; path = Services/StatsMeasurementsService.swift; sourceTree = "<group>"; };
 		4ECF7FA115EA0E9D86628E1E /* NotificationService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NotificationService.swift; path = Services/NotificationService.swift; sourceTree = "<group>"; };
 		4F2A9B99E15DA0E4C98CAD16 /* StatsMeasurementsViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StatsMeasurementsViews.swift; path = Views/StatsMeasurementsViews.swift; sourceTree = "<group>"; };
@@ -102,6 +130,7 @@
 		6A500DB9AD71C567F936B1FE /* HealthViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HealthViews.swift; path = Views/HealthViews.swift; sourceTree = "<group>"; };
 		72F050F5AE3B4A30DC4C4870 /* ProgressaHealthKitService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ProgressaHealthKitService.swift; path = Services/ProgressaHealthKitService.swift; sourceTree = "<group>"; };
 		785F9F4C5DEE41CCA6D955FA /* CustomExercisesView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CustomExercisesView.swift; path = Views/CustomExercisesView.swift; sourceTree = "<group>"; };
+		82E2C216D2F6982FD8D36ACC /* WorkoutActivityAttributes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkoutActivityAttributes.swift; sourceTree = "<group>"; };
 		873F7D3E886451E947647EE2 /* SocialSliceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SocialSliceTests.swift; sourceTree = "<group>"; };
 		8761E2BC0D987F32692C650B /* ProgressaModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ProgressaModels.swift; path = Models/ProgressaModels.swift; sourceTree = "<group>"; };
 		8BEBC6C59FB69DCFE9210F44 /* WorkoutCache.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WorkoutCache.swift; path = Services/WorkoutCache.swift; sourceTree = "<group>"; };
@@ -116,6 +145,7 @@
 		BF25DC073045C023CEE513C7 /* StatsMeasurementsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StatsMeasurementsTests.swift; sourceTree = "<group>"; };
 		C17744028DC505D6DB47DF9E /* SocialCache.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SocialCache.swift; path = Services/SocialCache.swift; sourceTree = "<group>"; };
 		C4265F05575A2F9BF062C212 /* AvatarService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AvatarService.swift; path = Services/AvatarService.swift; sourceTree = "<group>"; };
+		CA66351878EDDB6BB0A41D7E /* WorkoutLiveActivity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WorkoutLiveActivity.swift; path = Services/WorkoutLiveActivity.swift; sourceTree = "<group>"; };
 		CC47C6342BA2C053348B1527 /* AppearanceModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppearanceModels.swift; path = Models/AppearanceModels.swift; sourceTree = "<group>"; };
 		CC85A92630A683858A3BB920 /* RoutineViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RoutineViews.swift; path = Views/RoutineViews.swift; sourceTree = "<group>"; };
 		D985F858C26AA05D0F58E8AE /* NutritionSliceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NutritionSliceTests.swift; sourceTree = "<group>"; };
@@ -123,6 +153,7 @@
 		DF4C52BC883ADF4DB938F728 /* NutritionModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NutritionModel.swift; path = ViewModels/NutritionModel.swift; sourceTree = "<group>"; };
 		E4A1FDC623DB6D4A4DAA1B7F /* HealthMetadataTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HealthMetadataTests.swift; sourceTree = "<group>"; };
 		E9C7EFECDDAFD404D5E58889 /* SocialClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SocialClient.swift; path = Services/SocialClient.swift; sourceTree = "<group>"; };
+		EC218D8C72401B883F7105A9 /* ProgressaLiveActivity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProgressaLiveActivity.swift; sourceTree = "<group>"; };
 		F050EBD46CFC71151B5935BF /* ProgressaNativeApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ProgressaNativeApp.swift; path = App/ProgressaNativeApp.swift; sourceTree = "<group>"; };
 		F6052AF080634CE7597B5A90 /* AuthProfileTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AuthProfileTests.swift; sourceTree = "<group>"; };
 		F74A3CF2BBB89B95307AFD8B /* NutritionViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = NutritionViews.swift; path = Views/NutritionViews.swift; sourceTree = "<group>"; };
@@ -142,6 +173,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				9DD2FC5B0D199F16B24740A4 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F5E107DA22DDADE2903A35AB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA17C5A6033326D51B3BF48C /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -233,6 +272,7 @@
 				59B10F2F71DA857D402F9652 /* SocialViews.swift */,
 				4F2A9B99E15DA0E4C98CAD16 /* StatsMeasurementsViews.swift */,
 				8A8A3FED0E5374AC275B000B /* Resources */,
+				CA66351878EDDB6BB0A41D7E /* WorkoutLiveActivity.swift */,
 			);
 			name = ProgressaNative;
 			path = ProgressaNative;
@@ -253,6 +293,7 @@
 			children = (
 				9EA6653B96B0CD80D6103F73 /* ProgressaNative.app */,
 				4F8FBAB7E2BE3170B4C16BA2 /* ProgressaNativeTests.xctest */,
+				4C76689D556609E25EFF31B1 /* ProgressaLiveActivity.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -265,7 +306,27 @@
 				3D2929C36329BBDA282C1516 /* Configuration */,
 				697BD0F24936F9711D3CA2A3 /* ProgressaNative */,
 				0BBB67CC3B98FF981D81FEA5 /* ProgressaNativeTests */,
+				CAFB7D0D46404EFBACC5743C /* Shared */,
+				E1853CCBD8ADC0B9557B49B9 /* ProgressaLiveActivity */,
 			);
+			sourceTree = "<group>";
+		};
+		CAFB7D0D46404EFBACC5743C /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				82E2C216D2F6982FD8D36ACC /* WorkoutActivityAttributes.swift */,
+			);
+			name = Shared;
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		E1853CCBD8ADC0B9557B49B9 /* ProgressaLiveActivity */ = {
+			isa = PBXGroup;
+			children = (
+				EC218D8C72401B883F7105A9 /* ProgressaLiveActivity.swift */,
+			);
+			name = ProgressaLiveActivity;
+			path = ProgressaLiveActivity;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -289,6 +350,23 @@
 			productReference = 4F8FBAB7E2BE3170B4C16BA2 /* ProgressaNativeTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		EE521BC878FCC575E79D957D /* ProgressaLiveActivity */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3A3B8B7A6391ACC6B4038506 /* Build configuration list for PBXNativeTarget "ProgressaLiveActivity" */;
+			buildPhases = (
+				527D44D4B5164C66F3FDE79D /* Sources */,
+				F5E107DA22DDADE2903A35AB /* Frameworks */,
+				0323B247DAB0A66EE171E717 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ProgressaLiveActivity;
+			productName = ProgressaLiveActivity;
+			productReference = 4C76689D556609E25EFF31B1 /* ProgressaLiveActivity.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		F215467E7AD360EDE994445A /* ProgressaNative */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = ED987438BD1F629978FDA28C /* Build configuration list for PBXNativeTarget "ProgressaNative" */;
@@ -297,10 +375,12 @@
 				6140C84B760DF34EB0D28219 /* Frameworks */,
 				754DFA854A0F187E8A82D944 /* Resources */,
 				A8E423CA03115FE769197CC5 /* Validate native configuration */,
+				9E84046C8A7487C35D0BC25A /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				7EA5699C2CEC6BAF24E8A391 /* PBXTargetDependency */,
 			);
 			name = ProgressaNative;
 			productName = ProgressaNative;
@@ -333,11 +413,19 @@
 			targets = (
 				F215467E7AD360EDE994445A /* ProgressaNative */,
 				7AECFECFE80CFF1237F43536 /* ProgressaNativeTests */,
+				EE521BC878FCC575E79D957D /* ProgressaLiveActivity */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		0323B247DAB0A66EE171E717 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		26C4661F205F9381A4D94326 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -379,6 +467,15 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		527D44D4B5164C66F3FDE79D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C82C3AD766A9020EEEF64F5F /* WorkoutActivityAttributes.swift in Sources */,
+				03D06DFB3FDAEF0DC277171D /* ProgressaLiveActivity.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9D08C42298509388A7454348 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -438,6 +535,8 @@
 				73DC6339212F0C7A3445A57D /* RoutineViews.swift in Sources */,
 				1F2773101744498DD9B256F6 /* SocialViews.swift in Sources */,
 				4C198869014A03DF9C1FBEF8 /* StatsMeasurementsViews.swift in Sources */,
+				7708D6ED66B3EEBC52B773BB /* WorkoutLiveActivity.swift in Sources */,
+				7535D1702F78FA9B297CF3F8 /* WorkoutActivityAttributes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -450,9 +549,32 @@
 			target = F215467E7AD360EDE994445A /* ProgressaNative */;
 			targetProxy = DFC503C4BEF0606AD8C4705E /* PBXContainerItemProxy */;
 		};
+		7EA5699C2CEC6BAF24E8A391 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = ProgressaLiveActivity;
+			target = EE521BC878FCC575E79D957D /* ProgressaLiveActivity */;
+			targetProxy = 42920B67E2F03C9F4D15B163 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		21E90F0BE41C8F5A77DA24B6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 85RT3VH5D8;
+				INFOPLIST_FILE = ProgressaLiveActivity/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bryandijkh.progressa.liveactivity;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 		2BB91E12EEF03F80DD3A3421 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -513,6 +635,24 @@
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
+		};
+		3CFF9607476C8906CA085CA3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 85RT3VH5D8;
+				INFOPLIST_FILE = ProgressaLiveActivity/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bryandijkh.progressa.liveactivity;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
 		};
 		54360E39C7E94890A9052EDC /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -643,6 +783,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		3A3B8B7A6391ACC6B4038506 /* Build configuration list for PBXNativeTarget "ProgressaLiveActivity" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3CFF9607476C8906CA085CA3 /* Release */,
+				21E90F0BE41C8F5A77DA24B6 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		605B97B403856045D8D98C1D /* Build configuration list for PBXNativeTarget "ProgressaNativeTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

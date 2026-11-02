@@ -10,6 +10,14 @@ on:
       - develop
 
 jobs:
+  progressa-native:
+    name: Progressa Native Tests
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run workout unit tests
+        run: bash scripts/test_progressa_native.sh
+
   quantivita-native:
     name: Quantivita Native Tests
     runs-on: macos-15

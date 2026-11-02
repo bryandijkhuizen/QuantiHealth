@@ -10,7 +10,12 @@ final class ProgressaModel: ObservableObject {
     @Published var session: ProgressaSession?
     @Published var profile: ProgressaProfile?
     @Published var profileState: ProfileState = .loading
-    @Published var workouts: [ProgressaWorkout] = []
+    @Published var workouts: [ProgressaWorkout] = [] { didSet { liveActivity.sync(activeWorkout) } }
+    @Published var workoutRoute: String?
+    @Published private(set) var isChangingWorkout = false
+    private let liveActivity = WorkoutLiveActivity()
+    var activeWorkout: ProgressaWorkout? { workouts.first(where: \.isInProgress) }
+    func syncLiveActivity() { liveActivity.sync(activeWorkout) }
     @Published var routines: [ProgressaRoutine] = []
     @Published var routineDetails: [String: ProgressaRoutineDetail] = [:]
     @Published var healthSessions: [ProgressaHealthSession] = []
@@ -250,6 +255,7 @@ final class ProgressaModel: ObservableObject {
         session = nil
         profile = nil
         profileState = .loading
+        workoutRoute = nil
         workouts = []
         routines = []
         routineDetails = [:]
@@ -559,6 +565,13 @@ final class ProgressaModel: ObservableObject {
     }
 
     func createWorkout(title: String, createdAt: Date, exercises: [ProgressaExerciseInput]) async -> String? {
+        if let activeWorkout {
+            guard exercises.isEmpty else { message = "Finish your current workout before starting a routine."; return nil }
+            return activeWorkout.id
+        }
+        guard !isChangingWorkout else { return nil }
+        isChangingWorkout = true
+        defer { isChangingWorkout = false }
         guard let session = await validWorkoutSession() else { return nil }
         guard exercises.allSatisfy({ $0.sets.allSatisfy(\.isValidForEntry) }) else {
             message = "Every set needs positive reps, non-negative weight and RIR between 0 and 10."
@@ -574,13 +587,48 @@ final class ProgressaModel: ObservableObject {
                 ))
             }
             replace(workout)
-            try workoutCache.save(workouts, userId: session.userId)
+            try? workoutCache.save(workouts, userId: session.userId)
             return workout.id
         } catch {
             if let createdID { try? await workoutService.deleteWorkout(id: createdID, session: session) }
             message = "The workout could not be saved. No partial workout was kept. \(friendly(error))"
             return nil
         }
+    }
+
+    @discardableResult
+    func saveWorkoutTiming(id: String, startedAt: Date, endedAt: Date?) async -> Bool {
+        guard !isChangingWorkout else { return false }
+        isChangingWorkout = true
+        defer { isChangingWorkout = false }
+        guard let session = await validWorkoutSession() else { return false }
+        guard startedAt <= .now, endedAt == nil || (endedAt! >= startedAt && endedAt! <= .now) else {
+            message = "The end must be after the start, and workout times cannot be in the future."
+            return false
+        }
+        do {
+            var updated = try await workoutService.updateWorkoutTiming(id: id, startedAt: startedAt, endedAt: endedAt, session: session)
+            updated.exercises = workouts.first(where: { $0.id == id })?.exercises ?? []
+            replace(updated)
+            try? workoutCache.save(workouts, userId: session.userId)
+            return true
+        } catch {
+            message = "Workout times could not be saved. Keep the workout open and try again. \(friendly(error))"
+            return false
+        }
+    }
+
+    func addSequence(workoutId: String, exercises: [ProgressaExerciseLibraryItem], rounds: Int) async -> Bool {
+        guard !isChangingWorkout else { return false }
+        isChangingWorkout = true
+        defer { isChangingWorkout = false }
+        guard let session = await validWorkoutSession() else { return false }
+        guard (2...12).contains(exercises.count), (1...20).contains(rounds) else { return false }
+        do {
+            try await workoutService.addSequence(workoutId: workoutId, exerciseIDs: exercises.map(\.id), rounds: rounds, session: session)
+            await refreshWorkout(id: workoutId)
+            return true
+        } catch { message = "The sequence could not be added. \(friendly(error))"; return false }
     }
 
     func searchExercises(_ query: String) async -> [ProgressaExerciseLibraryItem] {
@@ -733,6 +781,10 @@ final class ProgressaModel: ObservableObject {
     }
 
     func handle(url: URL) {
+        if url.scheme == "progressa", url.host == "workout", let id = url.pathComponents.dropFirst().first {
+            workoutRoute = id
+            return
+        }
         if url.scheme == "progressa", url.host == "reset-callback" {
             Task { await beginPasswordRecovery(url) }
             return

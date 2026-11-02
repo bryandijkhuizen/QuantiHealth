@@ -60,6 +60,7 @@ jobs:
       IOS_SCHEME: ${{ matrix.app.scheme }}
       IOS_TEAM_ID: ${{ matrix.app.teamId }}
       IOS_APP_IDENTIFIER: ${{ matrix.app.bundleIdentifier }}
+      IOS_EXTENSION_IDENTIFIERS: ${{ join(matrix.app.extensionBundleIdentifiers, ',') }}
 
       APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
       APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
@@ -82,6 +83,10 @@ jobs:
       - name: Test Quantivita before distribution
         if: matrix.app.id == 'quantivita-native'
         run: bash scripts/test_quantivita_native.sh
+
+      - name: Test Progressa before distribution
+        if: matrix.app.id == 'progressa-native'
+        run: bash scripts/test_progressa_native.sh
 
       - name: Check required secrets
         shell: bash

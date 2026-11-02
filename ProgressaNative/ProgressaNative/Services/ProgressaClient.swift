@@ -25,6 +25,8 @@ protocol ProgressaWorkoutServing {
     func fetchWorkout(id: String, session: ProgressaSession) async throws -> ProgressaWorkout?
     func createWorkout(title: String, createdAt: Date, session: ProgressaSession) async throws -> ProgressaWorkout
     func updateWorkout(id: String, title: String, createdAt: Date, session: ProgressaSession) async throws -> ProgressaWorkout
+    func updateWorkoutTiming(id: String, startedAt: Date, endedAt: Date?, session: ProgressaSession) async throws -> ProgressaWorkout
+    func addSequence(workoutId: String, exerciseIDs: [String], rounds: Int, session: ProgressaSession) async throws
     func deleteWorkout(id: String, session: ProgressaSession) async throws
     func fetchExercises(query: String, session: ProgressaSession) async throws -> [ProgressaExerciseLibraryItem]
     func lastWeightForExercise(_ exerciseId: String, session: ProgressaSession) async throws -> Double?
@@ -42,6 +44,9 @@ protocol ProgressaWorkoutServing {
 }
 
 extension ProgressaWorkoutServing {
+    func updateWorkoutTiming(id: String, startedAt: Date, endedAt: Date?, session: ProgressaSession) async throws -> ProgressaWorkout { throw ProgressaClientError.configuration }
+    func addSequence(workoutId: String, exerciseIDs: [String], rounds: Int, session: ProgressaSession) async throws { throw ProgressaClientError.configuration }
+
     func fetchExercises(query: String, session: ProgressaSession) async throws -> [ProgressaExerciseLibraryItem] { throw ProgressaClientError.configuration }
     func lastWeightForExercise(_ exerciseId: String, session: ProgressaSession) async throws -> Double? { nil }
     func previousSetStructure(_ exerciseId: String, session: ProgressaSession) async throws -> [ProgressaSetInput] { [] }
@@ -236,7 +241,7 @@ final class ProgressaClient: ProgressaWorkoutServing {
         let headers = try await restRows(
             table: "workouts",
             query: [
-                .init(name: "select", value: "id,title,created_at,source,location"),
+                .init(name: "select", value: "id,title,created_at,source,location,start_time,end_time"),
                 .init(name: "user_id", value: "eq.\(session.userId)"),
                 .init(name: "order", value: "created_at.desc"),
             ], session: session
@@ -249,7 +254,7 @@ final class ProgressaClient: ProgressaWorkoutServing {
         let headers = try await restRows(
             table: "workouts",
             query: [
-                .init(name: "select", value: "id,title,created_at,source,location"),
+                .init(name: "select", value: "id,title,created_at,source,location,start_time,end_time"),
                 .init(name: "id", value: "eq.\(id)"),
                 .init(name: "user_id", value: "eq.\(session.userId)"),
                 .init(name: "limit", value: "1"),
@@ -261,6 +266,7 @@ final class ProgressaClient: ProgressaWorkoutServing {
     func createWorkout(title: String, createdAt: Date, session: ProgressaSession) async throws -> ProgressaWorkout {
         try await mutateWorkout(method: "POST", id: nil, body: [
             "user_id": session.userId,
+            "start_time": ISO8601DateFormatter().string(from: createdAt),
             "title": title,
             "created_at": ISO8601DateFormatter().string(from: createdAt),
         ], session: session)
@@ -271,6 +277,21 @@ final class ProgressaClient: ProgressaWorkoutServing {
             "title": title,
             "created_at": ISO8601DateFormatter().string(from: createdAt),
         ], session: session)
+    }
+
+    func updateWorkoutTiming(id: String, startedAt: Date, endedAt: Date?, session: ProgressaSession) async throws -> ProgressaWorkout {
+        guard endedAt == nil || endedAt! >= startedAt else { throw ProgressaClientError.invalidResponse }
+        return try await mutateWorkout(method: "PATCH", id: id, body: [
+            "start_time": ISO8601DateFormatter().string(from: startedAt),
+            "end_time": endedAt.map { ISO8601DateFormatter().string(from: $0) } as Any,
+        ], session: session)
+    }
+
+    func addSequence(workoutId: String, exerciseIDs: [String], rounds: Int, session: ProgressaSession) async throws {
+        guard (2...12).contains(exerciseIDs.count), (1...20).contains(rounds) else { throw ProgressaClientError.invalidResponse }
+        _ = try await restMutation(table: "rpc/add_workout_sequence", method: "POST", query: [], body: [
+            "p_workout_id": workoutId, "p_exercise_ids": exerciseIDs, "p_rounds": rounds,
+        ], session: session, returnRepresentation: false)
     }
 
     func deleteWorkout(id: String, session: ProgressaSession) async throws {
@@ -314,19 +335,19 @@ final class ProgressaClient: ProgressaWorkoutServing {
         return (rows.first?["weight_kg"] as? NSNumber)?.doubleValue
     }
 
-    /// Full set structure (weight + reps, in order) from the most recent previous workout that
-    /// contained this exercise — used as a starting-point suggestion when adding the exercise
-    /// to a new workout. Two queries: find the latest workout with this exercise, then its sets.
+    /// Suggest only the latest occurrence, never combine repeated blocks in a workout.
     func previousSetStructure(_ exerciseId: String, session: ProgressaSession) async throws -> [ProgressaSetInput] {
         let latest = try await restRows(table: "sets", query: [
-            .init(name: "select", value: "workout_id"),
+            .init(name: "select", value: "workout_id,exercise_block_id"),
             .init(name: "user_id", value: "eq.\(session.userId)"),
             .init(name: "exercise_id", value: "eq.\(exerciseId)"),
             .init(name: "order", value: "created_at.desc"),
             .init(name: "limit", value: "1"),
         ], session: session)
         guard let workoutId = latest.first?["workout_id"] as? String else { return [] }
+        let blockID = latest.first?["exercise_block_id"] as? String
         let rows = try await restRows(table: "sets", query: [
+            .init(name: "exercise_block_id", value: blockID.map { "eq.\($0)" } ?? "is.null"),
             .init(name: "select", value: "weight_kg,reps,rir,side,is_warmup,created_at"),
             .init(name: "user_id", value: "eq.\(session.userId)"),
             .init(name: "exercise_id", value: "eq.\(exerciseId)"),
@@ -510,7 +531,7 @@ final class ProgressaClient: ProgressaWorkoutServing {
         async let blockRows = restRows(
             table: "workout_exercise_blocks",
             query: [
-                .init(name: "select", value: "id,workout_id,exercise_id,sort_order,exercises(name,weight_type)"),
+                .init(name: "select", value: "id,workout_id,exercise_id,sort_order,sequence_id,sequence_round,exercises(name,weight_type)"),
                 .init(name: "workout_id", value: filter), .init(name: "order", value: "sort_order.asc"),
             ], session: session
         )
@@ -545,13 +566,16 @@ final class ProgressaClient: ProgressaWorkoutServing {
                       let exerciseId = row["exercise_id"] as? String else { return nil }
                 let exercise = row["exercises"] as? [String: Any]
                 let blockSets = sets.filter { $0["exercise_block_id"] as? String == blockId }.compactMap(workoutSet)
-                return ProgressaExercise(
+                var block = ProgressaExercise(
                     id: blockId, exerciseId: exerciseId,
                     name: exercise?["name"] as? String ?? "Exercise",
                     weightType: ProgressaWeightType(rawValue: exercise?["weight_type"] as? String ?? "standard") ?? .standard,
                     sortOrder: orderByBlock[blockId] ?? (row["sort_order"] as? NSNumber)?.intValue ?? 0,
                     sets: blockSets
                 )
+                block.sequenceID = row["sequence_id"] as? String
+                block.sequenceRound = (row["sequence_round"] as? NSNumber)?.intValue
+                return block
             }
             let knownBlockIDs = Set(exercises.map(\.id))
             let legacyRows = sets.filter { row in
@@ -577,7 +601,8 @@ final class ProgressaClient: ProgressaWorkoutServing {
             return ProgressaWorkout(
                 id: id, title: header["title"] as? String ?? "Workout", createdAt: createdAt,
                 source: header["source"] as? String ?? "manual", location: header["location"] as? String,
-                exercises: exercises
+                exercises: exercises, startedAt: parsedDate(header["start_time"] as? String),
+                endedAt: parsedDate(header["end_time"] as? String)
             )
         }.sorted { $0.createdAt > $1.createdAt }
     }
@@ -589,7 +614,8 @@ final class ProgressaClient: ProgressaWorkoutServing {
             return ProgressaWorkout(
                 id: id, title: header["title"] as? String ?? "Workout", createdAt: createdAt,
                 source: header["source"] as? String ?? "manual", location: header["location"] as? String,
-                exercises: []
+                exercises: [], startedAt: parsedDate(header["start_time"] as? String),
+                endedAt: parsedDate(header["end_time"] as? String)
             )
         }.sorted { $0.createdAt > $1.createdAt }
     }
@@ -757,14 +783,15 @@ final class ProgressaClient: ProgressaWorkoutServing {
               let createdAt = parsedDate(createdText) else { throw ProgressaClientError.invalidResponse }
         return ProgressaWorkout(
             id: workoutId, title: title, createdAt: createdAt,
-            source: row["source"] as? String ?? "manual", location: row["location"] as? String, exercises: []
+            source: row["source"] as? String ?? "manual", location: row["location"] as? String, exercises: [],
+            startedAt: parsedDate(row["start_time"] as? String), endedAt: parsedDate(row["end_time"] as? String)
         )
     }
 
     private func workoutRESTRequest(method: String, id: String?, session: ProgressaSession) throws -> URLRequest {
         guard !anonKey.isEmpty else { throw ProgressaClientError.configuration }
         var components = URLComponents(url: supabaseURL.appendingPathComponent("rest/v1/workouts"), resolvingAgainstBaseURL: false)!
-        components.queryItems = [URLQueryItem(name: "select", value: "id,user_id,title,created_at,source,location")]
+        components.queryItems = [URLQueryItem(name: "select", value: "id,user_id,title,created_at,source,location,start_time,end_time")]
         if let id {
             components.queryItems?.append(URLQueryItem(name: "id", value: "eq.\(id)"))
             components.queryItems?.append(URLQueryItem(name: "user_id", value: "eq.\(session.userId)"))

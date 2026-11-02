@@ -104,6 +104,55 @@ final class WorkoutSliceTests: XCTestCase {
         XCTAssertTrue(model.workouts.first?.exercises.isEmpty == true)
     }
 
+    func testHistoricalCacheDoesNotBecomeAnActiveWorkout() throws {
+        let old = sampleWorkout(id: "old")
+        let data = try JSONEncoder().encode(old)
+        let decoded = try JSONDecoder().decode(ProgressaWorkout.self, from: data)
+        XCTAssertFalse(decoded.isInProgress)
+        XCTAssertNil(decoded.startedAt)
+    }
+
+    func testStartResumeFinishPreservesLoggedSetsAndCache() async throws {
+        let service = FakeWorkoutService()
+        let cache = WorkoutCache(directory: temporaryDirectory())
+        let model = ProgressaModel(workoutService: service, workoutCache: cache)
+        model.session = session
+        let start = Date(timeIntervalSince1970: 100)
+        let id = await model.createWorkout(title: "Workout", createdAt: start, exercises: [])
+        XCTAssertEqual(id, "new")
+        XCTAssertTrue(model.activeWorkout?.isInProgress == true)
+        let resumed = await model.createWorkout(title: "Another", createdAt: .now, exercises: [])
+        XCTAssertEqual(resumed, id)
+        XCTAssertEqual(model.workouts.count, 1)
+        let finished = await model.saveWorkoutTiming(id: "new", startedAt: start, endedAt: start.addingTimeInterval(60))
+        XCTAssertTrue(finished)
+        XCTAssertNil(model.activeWorkout)
+        XCTAssertEqual(cache.load(userId: session.userId)?.workouts.first?.endedAt, start.addingTimeInterval(60))
+    }
+
+    func testFailedFinishKeepsWorkoutActive() async throws {
+        let service = FakeWorkoutService()
+        let model = ProgressaModel(workoutService: service, workoutCache: WorkoutCache(directory: temporaryDirectory()))
+        model.session = session
+        let start = Date(timeIntervalSince1970: 100)
+        _ = await model.createWorkout(title: "Workout", createdAt: start, exercises: [])
+        service.error = ProgressaClientError.invalidResponse
+        let saved = await model.saveWorkoutTiming(id: "new", startedAt: start, endedAt: start.addingTimeInterval(60))
+        XCTAssertFalse(saved)
+        XCTAssertNotNil(model.activeWorkout)
+        XCTAssertNotNil(model.message)
+    }
+
+    func testRejectsEndBeforeStartWithoutClosingWorkout() async throws {
+        let model = ProgressaModel(workoutService: FakeWorkoutService(), workoutCache: WorkoutCache(directory: temporaryDirectory()))
+        model.session = session
+        let start = Date(timeIntervalSince1970: 100)
+        _ = await model.createWorkout(title: "Workout", createdAt: start, exercises: [])
+        let saved = await model.saveWorkoutTiming(id: "new", startedAt: start, endedAt: start.addingTimeInterval(-1))
+        XCTAssertFalse(saved)
+        XCTAssertNotNil(model.activeWorkout)
+    }
+
     private func sampleWorkout(id: String) -> ProgressaWorkout {
         ProgressaWorkout(id: id, title: "Workout", createdAt: Date(timeIntervalSince1970: 50), exercises: [])
     }
@@ -161,12 +210,17 @@ private final class FakeWorkoutService: ProgressaWorkoutServing {
 
     func createWorkout(title: String, createdAt: Date, session: ProgressaSession) async throws -> ProgressaWorkout {
         if let error { throw error }
-        return ProgressaWorkout(id: "new", title: title, createdAt: createdAt, exercises: [])
+        return ProgressaWorkout(id: "new", title: title, createdAt: createdAt, exercises: [], startedAt: createdAt)
     }
 
     func updateWorkout(id: String, title: String, createdAt: Date, session: ProgressaSession) async throws -> ProgressaWorkout {
         if let error { throw error }
         return ProgressaWorkout(id: id, title: title, createdAt: createdAt, exercises: [])
+    }
+
+    func updateWorkoutTiming(id: String, startedAt: Date, endedAt: Date?, session: ProgressaSession) async throws -> ProgressaWorkout {
+        if let error { throw error }
+        return ProgressaWorkout(id: id, title: "Workout", createdAt: startedAt, exercises: [], startedAt: startedAt, endedAt: endedAt)
     }
 
     func deleteWorkout(id: String, session: ProgressaSession) async throws {

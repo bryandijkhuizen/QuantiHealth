@@ -61,6 +61,8 @@ tests.build_configurations.each do |config|
     'BUNDLE_LOADER' => '$(TEST_HOST)', 'CODE_SIGNING_ALLOWED' => 'NO'
   )
 end
+require_relative 'configure_live_activity'
+configure_live_activity(project, app)
 project.recreate_user_schemes
 project.save
 Xcodeproj::XCScheme.share_scheme(project_path, 'ProgressaNative')

@@ -1,4 +1,5 @@
 require "base64"
+require "xcodeproj"
 
 default_platform(:ios)
 
@@ -44,10 +45,10 @@ end
 def signing_xcargs
   [
     "CODE_SIGN_STYLE=Manual",
-    "PROVISIONING_PROFILE_SPECIFIER=\"#{provisioning_profile_name}\"",
+    ("PROVISIONING_PROFILE_SPECIFIER=\"#{provisioning_profile_name}\"" if ENV.fetch("IOS_EXTENSION_IDENTIFIERS", "").empty?),
     "CODE_SIGN_IDENTITY=\"Apple Distribution\"",
     "DEVELOPMENT_TEAM=#{ENV.fetch("IOS_TEAM_ID")}"
-  ].join(" ")
+  ].compact.join(" ")
 end
 
 platform :ios do
@@ -57,11 +58,23 @@ platform :ios do
 
     setup_ci if ENV["CI"]
 
+    identifiers = [app_identifier] + ENV.fetch("IOS_EXTENSION_IDENTIFIERS", "").split(",").reject(&:empty?)
+    profiles = identifiers.to_h { |identifier| [identifier, "match AppStore #{identifier}"] }
+
+    if ENV.fetch("QUANTI_MATCH_BOOTSTRAP", "false") == "true"
+      identifiers.drop(1).each do |identifier|
+        next if Spaceship::ConnectAPI::BundleId.find(identifier)
+        Spaceship::ConnectAPI::BundleId.create(
+          identifier: identifier, name: "#{app_scheme} Live Activity", platform: "IOS"
+        )
+      end
+    end
+
     match(
       type: "appstore",
       readonly: ENV.fetch("QUANTI_MATCH_BOOTSTRAP", "false") != "true",
       git_url: ENV.fetch("MATCH_GIT_URL"),
-      app_identifier: app_identifier,
+      app_identifier: identifiers,
       api_key: api_key
     )
 
@@ -71,6 +84,17 @@ platform :ios do
           build_number: ENV.fetch("GITHUB_RUN_NUMBER", Time.now.to_i.to_s),
           xcodeproj: app_project
         )
+        if identifiers.length > 1
+          project = Xcodeproj::Project.open(app_project)
+          project.targets.each do |target|
+            target.build_configurations.each do |configuration|
+              identifier = configuration.build_settings["PRODUCT_BUNDLE_IDENTIFIER"]
+              next unless profiles.key?(identifier)
+              configuration.build_settings["PROVISIONING_PROFILE_SPECIFIER"] = profiles.fetch(identifier)
+            end
+          end
+          project.save
+        end
         build_app(
           project: app_project,
           scheme: app_scheme,
@@ -80,9 +104,7 @@ platform :ios do
           output_name: "#{app_scheme}.ipa",
           xcargs: signing_xcargs,
           export_options: {
-            provisioningProfiles: {
-              app_identifier => provisioning_profile_name
-            }
+            provisioningProfiles: profiles
           }
         )
         upload_to_testflight(

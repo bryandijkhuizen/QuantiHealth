@@ -48,11 +48,12 @@ final class ProgressaHealthMetadataService {
         let workoutRows = try await request("workouts", method: "POST", body: [[
             "user_id": session.userId, "title": health.activityType,
             "created_at": Self.iso.string(from: health.start), "source": "health_import",
+            "start_time": Self.iso.string(from: health.start), "end_time": Self.iso.string(from: health.end),
         ]], session: session)
         guard let row = workoutRows.first, let id = row["id"] as? String else { throw ProgressaClientError.invalidResponse }
         do {
             _ = try await link(workoutId: id, health: health, heartRate: heartRate, session: session)
-            return ProgressaWorkout(id: id, title: health.activityType, createdAt: health.start, source: "health_import", exercises: [])
+            return ProgressaWorkout(id: id, title: health.activityType, createdAt: health.start, source: "health_import", exercises: [], startedAt: health.start, endedAt: health.end)
         } catch {
             _ = try? await request("workouts", method: "DELETE", query: [.init(name: "id", value: "eq.\(id)")], prefer: "return=minimal", session: session, returnsRows: false)
             throw error

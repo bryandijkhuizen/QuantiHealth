@@ -226,7 +226,7 @@ final class WorkoutAPIContractTests: XCTestCase {
         XCTAssertNil(weight)
     }
 
-    func testPreviousSetStructureLoadsAllSetsFromTheMostRecentWorkoutWithThisExercise() async throws {
+    func testPreviousSetStructureLoadsOnlyLatestBlockOfRepeatedExercise() async throws {
         var requests: [URLRequest] = []
         WorkoutURLProtocol.handler = { request in
             requests.append(request)
@@ -238,7 +238,7 @@ final class WorkoutAPIContractTests: XCTestCase {
                     ["weight_kg": 115, "reps": 8, "rir": NSNull(), "side": NSNull(), "is_warmup": false, "created_at": "2026-06-18T20:02:00Z"],
                 ]))
             }
-            return (200, Self.json([["workout_id": "workout-7"]]))
+            return (200, Self.json([["workout_id": "workout-7", "exercise_block_id": "block-3"]]))
         }
 
         let structure = try await client.previousSetStructure("bench", session: session)
@@ -251,6 +251,7 @@ final class WorkoutAPIContractTests: XCTestCase {
         XCTAssertEqual(firstItems["limit"], "1")
         let secondItems = Dictionary(uniqueKeysWithValues: (URLComponents(url: requests[1].url!, resolvingAgainstBaseURL: false)?.queryItems ?? []).map { ($0.name, $0.value) })
         XCTAssertEqual(secondItems["workout_id"], "eq.workout-7")
+        XCTAssertEqual(secondItems["exercise_block_id"], "eq.block-3")
         XCTAssertEqual(secondItems["order"], "created_at.asc")
     }
 
@@ -260,6 +261,65 @@ final class WorkoutAPIContractTests: XCTestCase {
         let structure = try await client.previousSetStructure("bench", session: session)
 
         XCTAssertTrue(structure.isEmpty)
+    }
+
+    func testFinishWorkoutPersistsTimesAndReturnsCompletedState() async throws {
+        let start = Date(timeIntervalSince1970: 100)
+        let end = Date(timeIntervalSince1970: 200)
+        WorkoutURLProtocol.handler = { request in
+            XCTAssertEqual(request.httpMethod, "PATCH")
+            let body = try XCTUnwrap(Self.bodyData(from: request))
+            let row = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
+            XCTAssertEqual(row["start_time"] as? String, "1970-01-01T00:01:40Z")
+            XCTAssertEqual(row["end_time"] as? String, "1970-01-01T00:03:20Z")
+            return (200, Self.json([["id": "workout-1", "title": "Workout", "created_at": "1970-01-01T00:01:40Z",
+                                      "start_time": row["start_time"]!, "end_time": row["end_time"]!]]))
+        }
+        let workout = try await client.updateWorkoutTiming(id: "workout-1", startedAt: start, endedAt: end, session: session)
+        XCTAssertFalse(workout.isInProgress)
+        XCTAssertEqual(workout.startedAt, start)
+        XCTAssertEqual(workout.endedAt, end)
+    }
+
+    func testReopeningWorkoutSendsExplicitNullEnd() async throws {
+        WorkoutURLProtocol.handler = { request in
+            let body = try XCTUnwrap(Self.bodyData(from: request))
+            let row = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
+            XCTAssertTrue(row["end_time"] is NSNull)
+            return (200, Self.json([["id": "workout-1", "title": "Workout", "created_at": "1970-01-01T00:01:40Z",
+                                      "start_time": row["start_time"]!, "end_time": NSNull()]]))
+        }
+        let workout = try await client.updateWorkoutTiming(id: "workout-1", startedAt: Date(timeIntervalSince1970: 100), endedAt: nil, session: session)
+        XCTAssertTrue(workout.isInProgress)
+    }
+
+    func testSequenceUsesSingleAtomicRequestAndPreservesExerciseOrder() async throws {
+        var calls = 0
+        WorkoutURLProtocol.handler = { request in
+            calls += 1
+            XCTAssertEqual(request.url?.path, "/rest/v1/rpc/add_workout_sequence")
+            XCTAssertEqual(request.httpMethod, "POST")
+            let body = try XCTUnwrap(Self.bodyData(from: request))
+            let row = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
+            XCTAssertEqual(row["p_exercise_ids"] as? [String], ["squat", "bench", "row"])
+            XCTAssertEqual(row["p_rounds"] as? Int, 3)
+            return (204, Data())
+        }
+        try await client.addSequence(workoutId: "workout-1", exerciseIDs: ["squat", "bench", "row"], rounds: 3, session: session)
+        XCTAssertEqual(calls, 1)
+    }
+
+    func testLegacyHistoryDoesNotIncludeOtherExerciseBlocks() async throws {
+        var calls = 0
+        WorkoutURLProtocol.handler = { request in
+            calls += 1
+            if calls == 1 { return (200, Self.json([["workout_id": "legacy"]])) }
+            let query = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)!.queryItems!
+            XCTAssertEqual(query.first { $0.name == "exercise_block_id" }?.value, "is.null")
+            return (200, Self.json([]))
+        }
+        _ = try await client.previousSetStructure("bench", session: session)
+        XCTAssertEqual(calls, 2)
     }
 
     private static func bodyData(from request: URLRequest) -> Data? {

@@ -192,6 +192,9 @@ struct ProgressaWorkout: Identifiable, Hashable, Codable {
     var source: String = "manual"
     var location: String?
     var exercises: [ProgressaExercise]
+    var startedAt: Date? = nil
+    var endedAt: Date? = nil
+    var isInProgress: Bool { startedAt != nil && endedAt == nil }
     var totalSets: Int { exercises.reduce(0) { $0 + $1.sets.count } }
 }
 
@@ -204,6 +207,8 @@ struct ProgressaExercise: Identifiable, Hashable, Codable {
     var weightType: ProgressaWeightType = .standard
     var sortOrder: Int = 0
     var sets: [ProgressaWorkoutSet]
+    var sequenceID: String? = nil
+    var sequenceRound: Int? = nil
 
     init(
         id: String, exerciseId: String? = nil, name: String, muscleGroup: String? = nil,

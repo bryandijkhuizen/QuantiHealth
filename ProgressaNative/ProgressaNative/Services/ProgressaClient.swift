@@ -326,13 +326,13 @@ final class ProgressaClient: ProgressaWorkoutServing {
     /// in the Flutter app: latest `sets` row for this user/exercise, newest first.
     func lastWeightForExercise(_ exerciseId: String, session: ProgressaSession) async throws -> Double? {
         let rows = try await restRows(table: "sets", query: [
-            .init(name: "select", value: "weight_kg"),
+            .init(name: "select", value: "weight_kg,added_weight_kg"),
             .init(name: "user_id", value: "eq.\(session.userId)"),
             .init(name: "exercise_id", value: "eq.\(exerciseId)"),
             .init(name: "order", value: "created_at.desc"),
             .init(name: "limit", value: "1"),
         ], session: session)
-        return (rows.first?["weight_kg"] as? NSNumber)?.doubleValue
+        return ((rows.first?["added_weight_kg"] ?? rows.first?["weight_kg"]) as? NSNumber)?.doubleValue
     }
 
     /// Suggest only the latest occurrence, never combine repeated blocks in a workout.
@@ -348,7 +348,7 @@ final class ProgressaClient: ProgressaWorkoutServing {
         let blockID = latest.first?["exercise_block_id"] as? String
         let rows = try await restRows(table: "sets", query: [
             .init(name: "exercise_block_id", value: blockID.map { "eq.\($0)" } ?? "is.null"),
-            .init(name: "select", value: "weight_kg,reps,rir,side,is_warmup,created_at"),
+            .init(name: "select", value: "added_weight_kg,weight_kg,reps,rir,side,is_warmup,created_at"),
             .init(name: "user_id", value: "eq.\(session.userId)"),
             .init(name: "exercise_id", value: "eq.\(exerciseId)"),
             .init(name: "workout_id", value: "eq.\(workoutId)"),
@@ -356,7 +356,7 @@ final class ProgressaClient: ProgressaWorkoutServing {
         ], session: session)
         return rows.map { row in
             ProgressaSetInput(
-                weightKg: (row["weight_kg"] as? NSNumber)?.doubleValue, reps: (row["reps"] as? NSNumber)?.intValue,
+                weightKg: ((row["added_weight_kg"] ?? row["weight_kg"]) as? NSNumber)?.doubleValue, reps: (row["reps"] as? NSNumber)?.intValue,
                 rir: (row["rir"] as? NSNumber)?.doubleValue, side: row["side"] as? String,
                 isWarmup: (row["is_warmup"] as? Bool) ?? false
             )
@@ -444,10 +444,10 @@ final class ProgressaClient: ProgressaWorkoutServing {
         _ input: ProgressaSetInput, workoutId: String, block: ProgressaExercise, session: ProgressaSession
     ) async throws -> ProgressaWorkoutSet {
         let rows = try await restMutation(
-            table: "sets", method: "POST", query: [.init(name: "select", value: "id,weight_kg,reps,rir,side,is_warmup,created_at")],
+            table: "sets", method: "POST", query: [.init(name: "select", value: "id,base_weight_kg,weight_kg,reps,rir,side,is_warmup,created_at")],
             body: [[
                 "user_id": session.userId, "workout_id": workoutId, "exercise_id": block.exerciseId,
-                "exercise_block_id": block.id, "weight_kg": input.weightKg as Any,
+                "exercise_block_id": block.id, "base_weight_kg": NSNull(), "weight_kg": input.weightKg as Any,
                 "reps": input.reps as Any, "rir": input.rir as Any, "side": normalizedSide(input.side) as Any,
                 "is_warmup": input.isWarmup,
             ]], session: session, returnRepresentation: true
@@ -460,7 +460,7 @@ final class ProgressaClient: ProgressaWorkoutServing {
         let rows = try await restMutation(
             table: "sets", method: "PATCH",
             query: [.init(name: "id", value: "eq.\(setId)"), .init(name: "user_id", value: "eq.\(session.userId)"),
-                    .init(name: "select", value: "id,weight_kg,reps,rir,side,is_warmup,created_at")],
+                    .init(name: "select", value: "id,base_weight_kg,weight_kg,reps,rir,side,is_warmup,created_at")],
             body: [
                 "weight_kg": input.weightKg as Any, "reps": input.reps as Any, "rir": input.rir as Any,
                 "side": normalizedSide(input.side) as Any, "is_warmup": input.isWarmup,
@@ -538,7 +538,7 @@ final class ProgressaClient: ProgressaWorkoutServing {
         async let setRows = restRows(
             table: "sets",
             query: [
-                .init(name: "select", value: "id,workout_id,exercise_id,exercise_block_id,weight_kg,reps,rir,side,is_warmup,created_at,exercises(name,weight_type)"),
+                .init(name: "select", value: "id,workout_id,exercise_id,exercise_block_id,base_weight_kg,weight_kg,reps,rir,side,is_warmup,created_at,exercises(name,weight_type)"),
                 .init(name: "workout_id", value: filter), .init(name: "user_id", value: "eq.\(session.userId)"),
                 .init(name: "order", value: "created_at.asc"),
             ], session: session
@@ -620,6 +620,22 @@ final class ProgressaClient: ProgressaWorkoutServing {
         }.sorted { $0.createdAt > $1.createdAt }
     }
 
+    func exerciseBase(_ id: String, session: ProgressaSession) async throws -> Double {
+        let rows = try await restRows(table: "exercise_load_preferences", query: [
+            .init(name: "exercise_id", value: "eq.\(id)"),
+            .init(name: "user_id", value: "eq.\(session.userId)"),
+            .init(name: "select", value: "base_weight_kg")
+        ], session: session)
+        return (rows.first?["base_weight_kg"] as? NSNumber)?.doubleValue ?? 0
+    }
+
+    func setExerciseBase(_ kg: Double, id: String, session: ProgressaSession) async throws {
+        _ = try await restMutation(table: "exercise_load_preferences", method: "POST",
+            query: [.init(name: "on_conflict", value: "user_id,exercise_id")],
+            body: ["exercise_id": id, "user_id": session.userId, "base_weight_kg": kg],
+            session: session, returnRepresentation: false, prefer: "resolution=merge-duplicates,return=minimal")
+    }
+
     private func restRows(table: String, query: [URLQueryItem], session: ProgressaSession) async throws -> [[String: Any]] {
         guard !anonKey.isEmpty else { throw ProgressaClientError.configuration }
         var all: [[String: Any]] = []
@@ -686,7 +702,7 @@ final class ProgressaClient: ProgressaWorkoutServing {
     private func workoutSet(_ row: [String: Any]) -> ProgressaWorkoutSet? {
         guard let id = row["id"] as? String else { return nil }
         return ProgressaWorkoutSet(
-            id: id, weightKg: (row["weight_kg"] as? NSNumber)?.doubleValue,
+            id: id, baseWeightKg: (row["base_weight_kg"] as? NSNumber)?.doubleValue, weightKg: (row["weight_kg"] as? NSNumber)?.doubleValue,
             reps: (row["reps"] as? NSNumber)?.intValue, rir: (row["rir"] as? NSNumber)?.doubleValue,
             side: row["side"] as? String, isWarmup: row["is_warmup"] as? Bool ?? false,
             createdAt: parsedDate(row["created_at"] as? String) ?? .now

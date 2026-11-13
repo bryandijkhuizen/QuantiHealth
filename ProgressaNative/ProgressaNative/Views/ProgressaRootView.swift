@@ -637,7 +637,7 @@ private struct InlineSetRow: View {
     /// alongside autosave so the user can confirm a change was captured instead of just
     /// trusting the debounce timer.
     private var isDirty: Bool {
-        parsedDouble(weightText).map(model.workoutWeightForStorage) != set.weightKg || parsedInt(repsText) != set.reps
+        parsedDouble(weightText).map(model.workoutWeightForStorage) != set.addedWeightKg || parsedInt(repsText) != set.reps
     }
 
     var body: some View {
@@ -662,8 +662,14 @@ private struct InlineSetRow: View {
             Button(action: onDelete) { Image(systemName: "minus.circle.fill") }
                 .buttonStyle(.borderless).foregroundStyle(.red.opacity(0.8))
         }
+        .safeAreaInset(edge: .bottom, alignment: .leading, spacing: 0) {
+            if let base = set.baseWeightKg, base > 0, let total = set.weightKg {
+                Text("Base \(model.workoutWeightText(base)) + added \(model.workoutWeightText(set.addedWeightKg ?? 0)) = \(model.workoutWeightText(total))")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+        }
         .onAppear {
-            weightText = set.weightKg.map { formattedNumber(model.workoutWeightForDisplay($0)) } ?? ""
+            weightText = set.addedWeightKg.map { formattedNumber(model.workoutWeightForDisplay($0)) } ?? ""
             repsText = set.reps.map(String.init) ?? ""
         }
         .task(id: "\(weightText)|\(repsText)") {
@@ -678,7 +684,7 @@ private struct InlineSetRow: View {
         let newWeightKg = parsedDouble(weightText).map(model.workoutWeightForStorage)
         let newReps = parsedInt(repsText)
         guard let newReps, newReps > 0 else { return }
-        let input = ProgressaSetInput(weightKg: newWeightKg, reps: newReps, rir: set.rir, side: set.side, isWarmup: set.isWarmup)
+        let input = ProgressaSetInput(weightKg: (set.baseWeightKg ?? 0) > 0 ? (newWeightKg ?? 0) + (set.baseWeightKg ?? 0) : newWeightKg, reps: newReps, rir: set.rir, side: set.side, isWarmup: set.isWarmup)
         guard input.isValidForEntry else { return }
         isSaving = true
         _ = await model.updateSet(input, workoutId: workoutId, blockId: blockId, setId: set.id)
@@ -797,6 +803,47 @@ private struct DraftSetRow: Identifiable {
 
 /// Step 2 of the add-exercise wizard: an editable per-set table (weight + reps), with previous
 /// workout values shown as suggestions so new entries are still deliberate user input.
+private struct ExerciseBaseSection: View {
+    @EnvironmentObject private var model: ProgressaModel
+    let exerciseID: String
+    @State private var value = ""
+    @State private var saved: Double?
+    @State private var error: String?
+    @State private var busy = false
+
+    var body: some View {
+        Section {
+            HStack {
+                Text("Equipment base")
+                Spacer()
+                TextField("0", text: $value).keyboardType(.decimalPad)
+                    .multilineTextAlignment(.trailing).accessibilityLabel("Equipment base weight")
+                Text(model.workoutWeightUnit)
+            }
+            Button("Save base for new sets") {
+                guard let number = parsedDouble(value), number.isFinite, number >= 0 else { return }
+                Task {
+                    busy = true
+                    defer { busy = false }
+                    do {
+                        try await model.setExerciseBase(model.workoutWeightForStorage(number), id: exerciseID)
+                        saved = number
+                        error = nil
+                    } catch { self.error = error.localizedDescription }
+                }
+            }.disabled(busy || parsedDouble(value) == nil || (parsedDouble(value) ?? -1) < 0 || parsedDouble(value) == saved)
+            if let error { Text(error).foregroundStyle(.red) }
+        } footer: { Text("Enter the added weight for each set. The total includes this base.") }
+        .task(id: exerciseID) {
+            do {
+                let kg = try await model.exerciseBase(exerciseID)
+                value = String(model.workoutWeightForDisplay(kg))
+                saved = parsedDouble(value)
+            } catch { self.error = error.localizedDescription }
+        }
+    }
+}
+
 private struct ExerciseSetupStep: View {
     @EnvironmentObject private var model: ProgressaModel
     let exercise: ProgressaExerciseLibraryItem
@@ -816,6 +863,7 @@ private struct ExerciseSetupStep: View {
                 Text(exercise.name).font(.headline)
                 if let group = exercise.muscleGroup { Text(group).font(.caption).foregroundStyle(.secondary) }
             }
+            ExerciseBaseSection(exerciseID: exercise.id)
             Section("Previous data") {
                 if isLoadingHistory {
                     ProgressView()
@@ -830,7 +878,7 @@ private struct ExerciseSetupStep: View {
                     Text("No previous data available yet.").foregroundStyle(.secondary)
                 }
             }
-            Section("Sets") {
+            Section("Sets · added weight") {
                 ForEach($rows) { $row in
                     HStack {
                         Text("Set \(rowNumber(row))").frame(width: 44, alignment: .leading).foregroundStyle(.secondary)
@@ -919,7 +967,7 @@ private struct ProgressaSetEditor: View {
 
     init(target: SetEditTarget) {
         self.target = target
-        _weight = State(initialValue: target.workoutSet?.weightKg.map { String($0) } ?? "")
+        _weight = State(initialValue: target.workoutSet?.addedWeightKg.map { String($0) } ?? "")
         _reps = State(initialValue: target.workoutSet?.reps.map(String.init) ?? "")
         _rir = State(initialValue: target.workoutSet?.rir.map { String($0) } ?? "")
         _side = State(initialValue: target.workoutSet?.side ?? "")
@@ -929,8 +977,9 @@ private struct ProgressaSetEditor: View {
     var body: some View {
         NavigationStack {
             Form {
+                if target.workoutSet == nil { ExerciseBaseSection(exerciseID: target.block.exerciseId) }
                 Section(target.block.name) {
-                    TextField("Weight (\(model.workoutWeightUnit))", text: $weight).keyboardType(.decimalPad)
+                    TextField("Added weight (\(model.workoutWeightUnit))", text: $weight).keyboardType(.decimalPad)
                     TextField("Reps", text: $reps).keyboardType(.numberPad)
                     TextField("RIR (optional)", text: $rir).keyboardType(.decimalPad)
                     Picker("Side", selection: $side) {
@@ -943,7 +992,7 @@ private struct ProgressaSetEditor: View {
             .onAppear {
                 guard !didPrepareWeight else { return }
                 didPrepareWeight = true
-                if let kilograms = target.workoutSet?.weightKg {
+                if let kilograms = target.workoutSet?.addedWeightKg {
                     weight = String(model.workoutWeightForDisplay(kilograms))
                 }
             }
@@ -954,7 +1003,7 @@ private struct ProgressaSetEditor: View {
                         Task {
                             isSaving = true
                             let input = ProgressaSetInput(
-                                weightKg: parsedDouble(weight).map(model.workoutWeightForStorage), reps: parsedInt(reps), rir: parsedDouble(rir),
+                                weightKg: (target.workoutSet?.baseWeightKg ?? 0) > 0 ? model.workoutWeightForStorage(parsedDouble(weight) ?? 0) + (target.workoutSet?.baseWeightKg ?? 0) : parsedDouble(weight).map(model.workoutWeightForStorage), reps: parsedInt(reps), rir: parsedDouble(rir),
                                 side: side.isEmpty ? nil : side, isWarmup: isWarmup
                             )
                             let success = if let set = target.workoutSet {

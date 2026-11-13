@@ -210,7 +210,8 @@ struct WorkoutDetailView: View {
 
     private func setLabel(_ set: ProgressaSet) -> String {
         var parts: [String] = []
-        if let weight = set.weightKg { parts.append("\(weight.formatted(.number.precision(.fractionLength(0...1)))) kg") }
+        if let base = set.baseWeightKg, base > 0, let added = set.addedWeightKg { parts.append("Base \(base.formatted()) + added \(added.formatted()) kg") }
+        if let weight = set.totalWeightKg ?? set.weightKg { parts.append("\(weight.formatted(.number.precision(.fractionLength(0...1)))) kg") }
         if let reps = set.reps { parts.append("× \(reps)") }
         if let rir = set.rir { parts.append("RIR \(rir.formatted(.number.precision(.fractionLength(0...1))))") }
         if let side = set.side, !side.isEmpty { parts.append(side.capitalized) }

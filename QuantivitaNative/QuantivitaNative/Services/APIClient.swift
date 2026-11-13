@@ -110,6 +110,14 @@ final class APIClient {
         )
     }
 
+    func progressIndex(account: QuantivitaAccount, from: String?, to: String?) async throws -> StrengthIndex {
+        var components = URLComponents(url: baseURL.appendingPathComponent("api/users/\(account.accountId)/integrations/progressa/progress-index"), resolvingAgainstBaseURL: false)!
+        components.queryItems = [from.map { URLQueryItem(name: "from", value: $0) }, to.map { URLQueryItem(name: "to", value: $0) }].compactMap { $0 }
+        var request = URLRequest(url: components.url!)
+        request.setValue("Bearer \(account.syncToken)", forHTTPHeaderField: "Authorization")
+        return try decoder.decode(StrengthIndex.self, from: await data(for: request))
+    }
+
     func fetchProgressaWorkouts(account: QuantivitaAccount, from: Date?, to: Date) async throws -> [Workout] {
         var components = URLComponents(
             url: baseURL.appendingPathComponent("api/users/\(account.accountId)/integrations/progressa/workouts"),

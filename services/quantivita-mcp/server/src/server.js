@@ -342,6 +342,11 @@ app.delete('/api/users/:accountId/integrations/progressa', async (request, respo
   response.json({ ok: true });
 });
 
+app.get('/api/users/:accountId/integrations/progressa/progress-index', async (request, response) => {
+  try { response.json(await progressIndex(request.params.accountId, request.query)); }
+  catch (error) { response.status(error.status || 502).json({error: error.message}); }
+});
+
 app.get('/api/users/:accountId/integrations/progressa/workouts', async (request, response) => {
   await sendProgressaWorkouts(request.params.accountId, request, response);
 });
@@ -687,6 +692,13 @@ function createQuantivitaMcpServer(accountId) {
     },
   );
 
+  server.registerTool('get_progress_index', {
+    title: 'Progress Index',
+    description: 'Compare the best estimated 1RM on the first and last logged days per exercise. Dates are inclusive UTC workout dates.',
+    inputSchema: { from: z.string().optional(), to: z.string().optional() },
+    annotations: { readOnlyHint: true, destructiveHint: false },
+  }, async args => accountId ? mcpToolOutput(await progressIndex(accountId, args)) : mcpAuthRequiredToolResult());
+
   server.registerTool(
     'get_workout_details',
     {
@@ -916,6 +928,7 @@ async function callMcpTool(accountId, params) {
     const data = withCalibratedStrain(await readUserData(accountId));
     return mcpToolOutput(workoutsForMcp(data, args));
   }
+  if (name === 'get_progress_index') return mcpToolOutput(await progressIndex(accountId, args));
   if (name === 'get_workout_details') {
     const data = withCalibratedStrain(await readUserData(accountId));
     return mcpToolOutput(workoutDetailsForMcp(data, String(args.workoutId || '')));
@@ -981,6 +994,12 @@ function mcpTools() {
         additionalProperties: false,
       },
       annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    },
+    {
+      name: 'get_progress_index', title: 'Progress Index',
+      description: 'Compare estimated strength by exercise over an inclusive logged date range.',
+      inputSchema: {type: 'object', properties: {from: {type: 'string', format: 'date'}, to: {type: 'string', format: 'date'}}, additionalProperties: false},
+      annotations: {readOnlyHint: true, destructiveHint: false},
     },
     {
       name: 'get_workout_details',
@@ -2465,30 +2484,24 @@ async function saveProgressaConnection(accountId, { progressaUserId, accessToken
   return { ok: true, progressa: next.integrations.progressa };
 }
 
-async function sendProgressaWorkouts(accountId, request, response) {
+async function fetchProgressa(accountId, query, index = false) {
   const accounts = await readAccounts();
   const progressa = accounts[safeAccountId(accountId)]?.progressa;
   if (!progressa?.accessToken || !progressa?.userId) {
-    response.status(409).json({
-      error: 'Progressa is not connected for this Quantivita account',
-    });
-    return;
+    throw Object.assign(new Error('Progressa is not connected for this Quantivita account'), { status: 409 });
   }
   if (!progressaApiBaseUrl) {
-    response.status(503).json({
-      error: 'PROGRESSA_API_BASE_URL is not configured on the Quantivita homeserver',
-    });
-    return;
+    throw Object.assign(new Error('PROGRESSA_API_BASE_URL is not configured on the Quantivita homeserver'), { status: 503 });
   }
 
-  try {
     const remoteUrl = new URL(
       `/api/users/${encodeURIComponent(progressa.userId)}/workouts`,
       progressaApiBaseUrl,
     );
-    remoteUrl.searchParams.set('linkedOnly', 'true');
+    if (index) remoteUrl.searchParams.set('metric', 'progress-index');
+    else remoteUrl.searchParams.set('linkedOnly', 'true');
     for (const key of ['from', 'to', 'limit', 'workoutId']) {
-      const value = request.query[key];
+      const value = query[key];
       if (value != null && value !== '') remoteUrl.searchParams.set(key, String(value));
     }
 
@@ -2527,15 +2540,22 @@ async function sendProgressaWorkouts(accountId, request, response) {
     const body = await remoteResponse.text();
     if (!remoteResponse.ok) {
       const parsedError = parseJsonObject(body);
-      response.status(remoteResponse.status).json({
-        error: parsedError?.error || 'Progressa workout fetch failed',
-        status: remoteResponse.status,
-        details: parsedError?.details || parsedError?.message || '',
-      });
-      return;
+      throw Object.assign(new Error(parsedError?.error || 'Progressa workout fetch failed'), { status: remoteResponse.status });
     }
-
     const parsed = body ? JSON.parse(body) : [];
+    if (index && (!Array.isArray(parsed.loggedDates) || !Array.isArray(parsed.exercises))) {
+      throw new Error('Progressa API does not support Progress Index');
+    }
+    return { parsed, progressa };
+}
+
+async function progressIndex(accountId, args) {
+  return (await fetchProgressa(accountId, args, true)).parsed;
+}
+
+async function sendProgressaWorkouts(accountId, request, response) {
+  try {
+    const { parsed, progressa } = await fetchProgressa(accountId, request.query);
     const workouts = normalizeProgressaWorkouts(parsed);
     const data = await readUserData(accountId);
     const next = {
@@ -2553,7 +2573,7 @@ async function sendProgressaWorkouts(accountId, request, response) {
     await writeUserData(accountId, next);
     response.json({ workouts, integration: next.integrations.progressa });
   } catch (error) {
-    response.status(502).json({ error: `Progressa workout fetch failed: ${error.message}` });
+    response.status(error.status || 502).json({ error: `Progressa workout fetch failed: ${error.message}` });
   }
 }
 
@@ -2672,7 +2692,7 @@ function normalizeProgressaWorkout(row) {
   if (!id) return null;
   const start = row.created_at || row.createdAt || row.startTime || row.start_time || '';
   const details = row.details || {};
-  const exercises = Array.isArray(row.exercises) ? row.exercises : Array.isArray(row.sets) ? groupSets(row.sets) : [];
+  const exercises = Array.isArray(row.exercises) ? row.exercises.map(e => ({ ...e, sets: (e.sets || []).map(set => ({...set, ...setLoad(set)})) })) : Array.isArray(row.sets) ? groupSets(row.sets) : [];
   const hasVolumeData = exercisesHaveVolumeData(exercises);
   const totalVolumeKg = hasVolumeData ? totalVolumeForExercises(exercises) : 0;
   return {
@@ -2738,7 +2758,7 @@ function normalizeProgressaSetRows(rows) {
       current.progressaDetails.exercises.push(target);
     }
     target.sets.push({
-      weightKg: numericOrNull(row.weight_kg),
+      ...setLoad(row),
       reps: numericOrNull(row.reps),
       rir: numericOrNull(row.rir),
       side: row.side || null,
@@ -2815,6 +2835,12 @@ function attachProgressaToHealthWorkouts(current = [], linkedProgressa = []) {
   return healthWorkouts.sort((a, b) => String(b.startTime).localeCompare(String(a.startTime)));
 }
 
+function setLoad(set) {
+  const total = numericOrNull(set.totalWeightKg ?? set.total_weight_kg ?? set.weightKg ?? set.weight_kg);
+  const base = numericOrNull(set.baseWeightKg ?? set.base_weight_kg) ?? 0;
+  return { weightKg: total, totalWeightKg: total, baseWeightKg: base, addedWeightKg: total == null ? null : total - base };
+}
+
 function groupSets(sets) {
   const exercises = new Map();
   for (const set of sets) {
@@ -2826,7 +2852,7 @@ function groupSets(sets) {
       sets: [],
     };
     exercise.sets.push({
-      weightKg: numericOrNull(set.weightKg ?? set.weight_kg),
+      ...setLoad(set),
       reps: numericOrNull(set.reps),
       rir: numericOrNull(set.rir),
       side: set.side || null,

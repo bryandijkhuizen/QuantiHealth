@@ -19,7 +19,7 @@
       "platform": "native-ios",
       "scheme": "ProgressaNative",
       "tagPrefix": "progressa-native-ios-v",
-      "currentVersion": "2.2.0",
+      "currentVersion": "2.2.1",
       "bundleIdentifier": "com.bryandijkh.progressa",
       "extensionBundleIdentifiers": ["com.bryandijkh.progressa.liveactivity"],
       "teamId": "85RT3VH5D8",

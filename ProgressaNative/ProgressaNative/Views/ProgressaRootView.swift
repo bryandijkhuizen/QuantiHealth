@@ -300,6 +300,7 @@ private struct ProgressaWorkoutDetail: View {
     @State private var showingAddExercise = false
     @State private var setTarget: SetEditTarget?
     @State private var showingHealthPicker = false
+    @State private var editingBase: ProgressaExercise?
     @State private var showingSequence = false
     @State private var showingTimes = false
     @State private var editMode: EditMode = .inactive
@@ -346,6 +347,9 @@ private struct ProgressaWorkoutDetail: View {
                         }
                         .onDelete { offsets in
                             for index in offsets { Task { await model.deleteSet(workoutId: workoutId, blockId: exercise.id, setId: exercise.sets[index].id) } }
+                        }
+                        if !exercise.sets.isEmpty {
+                            Button("Edit logged base weight", systemImage: "scalemass") { editingBase = exercise }
                         }
                         Button { setTarget = SetEditTarget(workoutId: workoutId, block: exercise, workoutSet: nil) } label: {
                             Label("Add set", systemImage: "plus.circle")
@@ -415,6 +419,7 @@ private struct ProgressaWorkoutDetail: View {
         }
         .environment(\.editMode, $editMode)
         .sheet(isPresented: $showingTimes) { if let workout { WorkoutTimesEditor(workout: workout) } }
+        .sheet(item: $editingBase) { LoggedBaseEditor(workout: workoutId, exercise: $0) }
         .sheet(isPresented: $showingSequence) { WorkoutSequenceEditor(workoutID: workoutId) }
         .sheet(isPresented: $showingEdit) { if let workout { ProgressaWorkoutEditor(workout: workout) } }
         .sheet(isPresented: $showingAddExercise) {
@@ -672,6 +677,7 @@ private struct InlineSetRow: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
         }
+        .onChange(of: displayedAddedWeight) { weightText = $0 }
         .onAppear {
             weightText = displayedAddedWeight
             repsText = set.reps.map(String.init) ?? ""
@@ -808,6 +814,71 @@ private struct DraftSetRow: Identifiable {
 
 /// Step 2 of the add-exercise wizard: an editable per-set table (weight + reps), with previous
 /// workout values shown as suggestions so new entries are still deliberate user input.
+private struct LoggedBaseEditor: View {
+    @EnvironmentObject private var model: ProgressaModel
+    @Environment(\.dismiss) private var dismiss
+    let workout: String
+    let exercise: ProgressaExercise
+    @State private var value = ""
+    @State private var keepTotal = false
+    @State private var busy = false
+    @State private var error: String?
+
+    private var kilograms: Double? {
+        guard let n = parsedDouble(value), n.isFinite, n >= 0 else { return nil }
+        return model.workoutWeightForStorage(n)
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    LabeledContent("Base (\(model.workoutWeightUnit))") {
+                        TextField("0", text: $value).keyboardType(.decimalPad).multilineTextAlignment(.trailing)
+                    }
+                    Picker("Keep", selection: $keepTotal) {
+                        Text("Added weight").tag(false)
+                        Text("Total weight").tag(true)
+                    }.pickerStyle(.segmented)
+                } header: { Text(exercise.name) } footer: {
+                    Text(keepTotal ? "The logged totals stay the same. The base is included in each total." : "The base replaces the old base. Each set keeps its added weight.")
+                }
+                if let kg = kilograms {
+                    Section("Updated totals") {
+                        ForEach(Array(exercise.sets.enumerated()), id: \.element.id) { i, item in
+                            LabeledContent("Set \(i + 1)", value: model.workoutWeightText(keepTotal ? item.weightKg ?? 0 : (item.addedWeightKg ?? 0) + kg))
+                        }
+                    }
+                }
+                if let error { Text(error).foregroundStyle(.red) }
+            }
+            .navigationTitle("Logged base weight")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() }.disabled(busy) }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        guard let kg = kilograms else { return }
+                        busy = true
+                        Task {
+                            defer { busy = false }
+                            do {
+                                try await model.correctLoggedBase(kg, workout: workout, exercise: exercise, keepTotal: keepTotal)
+                                dismiss()
+                            } catch { self.error = error.localizedDescription }
+                        }
+                    }.disabled(busy || kilograms == nil || (keepTotal && exercise.sets.contains { ($0.weightKg ?? 0) < (kilograms ?? 0) }))
+                }
+            }
+            .onAppear {
+                let bases = Set(exercise.sets.map { $0.baseWeightKg ?? 0 })
+                if bases.count == 1, let kg = bases.first { value = String(model.workoutWeightForDisplay(kg)) }
+            }
+            .interactiveDismissDisabled(busy)
+        }
+    }
+}
+
 private struct ExerciseBaseSection: View {
     @EnvironmentObject private var model: ProgressaModel
     let exerciseID: String

@@ -843,6 +843,12 @@ final class ProgressaModel: ObservableObject {
         workouts.sort { $0.createdAt > $1.createdAt }
     }
 
+    func correctLoggedBase(_ kg: Double, workout: String, exercise: ProgressaExercise, keepTotal: Bool) async throws {
+        guard let session = await validWorkoutSession() else { throw ProgressaClientError.invalidResponse }
+        try await client.correctLoggedBase(kg, workout: workout, exercise: exercise, keepTotal: keepTotal, session: session)
+        await refreshWorkout(id: workout)
+    }
+
     func exerciseBase(_ id: String) async throws -> Double {
         guard let session = await validWorkoutSession() else { throw ProgressaClientError.invalidResponse }
         return try await client.exerciseBase(id, session: session)

@@ -620,6 +620,13 @@ final class ProgressaClient: ProgressaWorkoutServing {
         }.sorted { $0.createdAt > $1.createdAt }
     }
 
+    func correctLoggedBase(_ kg: Double, workout: String, exercise: ProgressaExercise, keepTotal: Bool, session: ProgressaSession) async throws {
+        _ = try await restMutation(table: "rpc/correct_logged_base", method: "POST", query: [],
+            body: ["p_base": kg, "p_workout": workout, "p_exercise": exercise.exerciseId,
+                   "p_sets": exercise.sets.map(\.id), "p_keep_total": keepTotal],
+            session: session, returnRepresentation: false)
+    }
+
     func exerciseBase(_ id: String, session: ProgressaSession) async throws -> Double {
         let rows = try await restRows(table: "exercise_load_preferences", query: [
             .init(name: "exercise_id", value: "eq.\(id)"),

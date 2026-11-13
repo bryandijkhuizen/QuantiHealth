@@ -26,6 +26,7 @@ final class AppModel: ObservableObject {
     private let health = HealthKitService()
     private let progressaAuth = ProgressaAuthService()
     private let stravaAuth = StravaAuthService()
+    var indexAccountID: String? { account?.accountId }
     private var account: QuantivitaAccount?
     private var sessionGeneration = 0
     private var loadedWorkoutDays = 30

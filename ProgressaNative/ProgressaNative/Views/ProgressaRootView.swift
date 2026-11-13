@@ -636,8 +636,12 @@ private struct InlineSetRow: View {
     /// Whether the fields differ from the saved set — drives the manual save button, offered
     /// alongside autosave so the user can confirm a change was captured instead of just
     /// trusting the debounce timer.
+    private var displayedAddedWeight: String {
+        set.addedWeightKg.map { formattedNumber(model.workoutWeightForDisplay($0)) } ?? ""
+    }
+
     private var isDirty: Bool {
-        parsedDouble(weightText).map(model.workoutWeightForStorage) != set.addedWeightKg || parsedInt(repsText) != set.reps
+        weightText != displayedAddedWeight || parsedInt(repsText) != set.reps
     }
 
     var body: some View {
@@ -669,7 +673,7 @@ private struct InlineSetRow: View {
             }
         }
         .onAppear {
-            weightText = set.addedWeightKg.map { formattedNumber(model.workoutWeightForDisplay($0)) } ?? ""
+            weightText = displayedAddedWeight
             repsText = set.reps.map(String.init) ?? ""
         }
         .task(id: "\(weightText)|\(repsText)") {
@@ -681,7 +685,8 @@ private struct InlineSetRow: View {
 
     private func commitIfChanged() async {
         guard isDirty else { return }
-        let newWeightKg = parsedDouble(weightText).map(model.workoutWeightForStorage)
+        guard weightText.isEmpty || (parsedDouble(weightText).map { $0.isFinite && $0 >= 0 } ?? false) else { return }
+        let newWeightKg = weightText == displayedAddedWeight ? set.addedWeightKg : parsedDouble(weightText).map(model.workoutWeightForStorage)
         let newReps = parsedInt(repsText)
         guard let newReps, newReps > 0 else { return }
         let input = ProgressaSetInput(weightKg: (set.baseWeightKg ?? 0) > 0 ? (newWeightKg ?? 0) + (set.baseWeightKg ?? 0) : newWeightKg, reps: newReps, rir: set.rir, side: set.side, isWarmup: set.isWarmup)

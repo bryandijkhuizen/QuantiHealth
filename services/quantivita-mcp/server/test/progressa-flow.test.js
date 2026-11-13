@@ -25,7 +25,14 @@ test('connects, syncs, stores and exposes Progressa exercise details through MCP
       return;
     }
     assert.match(request.url, /^\/api\/users\/progressa-user\/workouts/);
-    assert.equal(new URL(request.url, 'http://localhost').searchParams.get('linkedOnly'), 'true');
+    const params = new URL(request.url, 'http://localhost').searchParams;
+    if (params.get('metric') === 'progress-index') {
+      assert.equal(params.get('from'), '2026-09-21');
+      assert.equal(request.headers.authorization, 'Bearer progressa-refreshed-token');
+      response.end(JSON.stringify({loggedDates: ['2026-09-21','2026-11-11'], exercises: [{id:'leg',index:1.26}]}));
+      return;
+    }
+    assert.equal(params.get('linkedOnly'), 'true');
     workoutRequests += 1;
     if (workoutRequests === 1) {
       assert.equal(request.headers.authorization, 'Bearer progressa-access-token');
@@ -54,7 +61,7 @@ test('connects, syncs, stores and exposes Progressa exercise details through MCP
       {
         workout_id: 'workout-1',
         exercise_id: 'bench-press',
-        weight_kg: 60,
+        weight_kg: 60, base_weight_kg: 10, added_weight_kg: 50,
         reps: 8,
         rir: 2,
         side: 'both',
@@ -155,6 +162,17 @@ test('connects, syncs, stores and exposes Progressa exercise details through MCP
   assert.equal(mcp.status, 200);
   const mcpText = await mcp.text();
   assert.match(mcpText, /Bench Press/);
+  assert.match(mcpText, /"baseWeightKg":10/);
+  assert.match(mcpText, /"addedWeightKg":50/);
+  assert.match(mcpText, /"totalWeightKg":60/);
+  assert.equal(workout.progressaDetails.totalVolumeKg, 680);
+  const index = await fetch(`${endpoint}/api/users/${accountId}/integrations/progressa/progress-index?from=2026-09-21`, {headers: auth});
+  assert.equal((await index.json()).exercises[0].index, 1.26);
+  const mcpIndex = await fetch(`${endpoint}/mcp`, {
+    method: 'POST', headers: {authorization:'Bearer mcp-test-token','content-type':'application/json',accept:'application/json, text/event-stream'},
+    body: JSON.stringify({jsonrpc:'2.0',id:2,method:'tools/call',params:{name:'get_progress_index',arguments:{from:'2026-09-21'}}}),
+  });
+  assert.match(await mcpIndex.text(), /"index":1.26/);
   assert.match(mcpText, /"totalSets":2/);
 });
 

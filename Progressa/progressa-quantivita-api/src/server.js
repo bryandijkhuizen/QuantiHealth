@@ -233,6 +233,18 @@ app.get('/api/users/:userId/workouts', async (request, response) => {
     return;
   }
 
+  if (request.query.metric === 'progress-index') {
+    const { from, to } = request.query;
+    if ([from, to].some(day => day != null && !/^\d{4}-\d{2}-\d{2}$/.test(day)) || (from && to && from > to)) {
+      return response.status(400).json({ error: 'Invalid date range' });
+    }
+    const { data, error } = await supabaseAdmin.rpc('progress_index', {
+      p_user_id: user.id, p_from: from || null, p_to: to || null,
+    });
+    if (error) return response.status(500).json({ error: 'Could not read Progress Index' });
+    return response.json(data);
+  }
+
   const limit = clampNumber(Number(request.query.limit || 50), 1, 200);
   const from = request.query.from ? String(request.query.from) : '';
   const to = request.query.to ? String(request.query.to) : '';
@@ -327,6 +339,8 @@ app.get('/api/users/:userId/workouts', async (request, response) => {
           workout_id,
           exercise_id,
           weight_kg,
+          base_weight_kg,
+          added_weight_kg,
           reps,
           rir,
           side,
@@ -369,6 +383,7 @@ app.get('/api/users/:userId/workouts', async (request, response) => {
 
   const rows = (sets || []).map((row) => ({
     ...row,
+    total_weight_kg: row.weight_kg,
     health_activity: healthLinks.get(String(row.workout_id)) || null,
   }));
   const workoutsWithoutSets = selectedWorkouts

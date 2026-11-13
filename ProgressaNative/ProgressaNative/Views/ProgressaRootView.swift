@@ -637,7 +637,7 @@ private struct InlineSetRow: View {
     /// alongside autosave so the user can confirm a change was captured instead of just
     /// trusting the debounce timer.
     private var displayedAddedWeight: String {
-        set.addedWeightKg.map { formattedNumber(model.workoutWeightForDisplay($0)) } ?? ""
+        self.set.addedWeightKg.map { formattedNumber(model.workoutWeightForDisplay($0)) } ?? ""
     }
 
     private var isDirty: Bool {

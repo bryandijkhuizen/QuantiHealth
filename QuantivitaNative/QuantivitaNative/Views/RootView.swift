@@ -119,12 +119,13 @@ private struct HealthPermissionView: View {
 }
 
 private struct MainTabView: View {
+    @EnvironmentObject private var model: AppModel
     var body: some View {
         TabView {
             NavigationStack { TodayView() }.tabItem { Label("Today", systemImage: "sun.max.fill") }
             NavigationStack { BiomarkersView() }.tabItem { Label("Trends", systemImage: "chart.xyaxis.line") }
             NavigationStack { WorkoutsView() }.tabItem { Label("Log", systemImage: "figure.run") }
-            NavigationStack { StrengthIndexView() }.tabItem { Label("Progress Index", systemImage: "chart.line.uptrend.xyaxis") }
+            NavigationStack { if let id = model.indexAccountID { StrengthIndexView(accountID: id).id(id) } }.tabItem { Label("Progress Index", systemImage: "chart.line.uptrend.xyaxis") }
             NavigationStack { SettingsView() }.tabItem { Label("You", systemImage: "person.crop.circle") }
         }
     }
@@ -162,6 +163,19 @@ struct Panel<Content: View>: View {
 
 private struct StrengthIndexView: View {
     @EnvironmentObject private var model: AppModel
+    @AppStorage private var chosen: Data
+    @State private var choosing = false
+    @State private var catalog: [StrengthIndex.Exercise] = []
+    init(accountID: String) {
+        _chosen = AppStorage(wrappedValue: Data(), "progressIndex.exercises." + accountID)
+    }
+    private var selected: Set<String>? {
+        try? JSONDecoder().decode(Set<String>.self, from: chosen)
+    }
+    private var visibleRows: [StrengthIndex.Exercise] {
+        guard let selected else { return rows }
+        return rows.filter { selected.contains($0.id) }
+    }
     @State private var dates: [String] = []
     @State private var from = ""
     @State private var to = ""
@@ -186,11 +200,13 @@ private struct StrengthIndexView: View {
             else if let error {
                 Text(error)
                 Button("Retry") { retry += 1 }
-            } else if rows.isEmpty {
+            } else if selected?.isEmpty == true {
+                Button("Choose exercises") { choosing = true }
+            } else if visibleRows.isEmpty {
                 Text("No weighted working sets in this period.")
             } else {
                 Section {
-                    ForEach(rows) { row in
+                    ForEach(visibleRows) { row in
                         VStack(alignment: .leading, spacing: 6) {
                             Text(row.name).font(.headline)
                             if row.days > 1 {
@@ -205,12 +221,36 @@ private struct StrengthIndexView: View {
             }
         }
         .navigationTitle("Progress Index")
+        .toolbar {
+            Button("Exercises", systemImage: "list.bullet") { choosing = true }.disabled(catalog.isEmpty)
+        }
+        .sheet(isPresented: $choosing) {
+            NavigationStack {
+                List(catalog) { exercise in
+                    let selection = selected ?? Set(catalog.map(\.id))
+                    Button {
+                        var next = selection
+                        if next.contains(exercise.id) { next.remove(exercise.id) } else { next.insert(exercise.id) }
+                        if let data = try? JSONEncoder().encode(next) { chosen = data }
+                    } label: {
+                        HStack {
+                            Text(exercise.name)
+                            Spacer()
+                            if selection.contains(exercise.id) { Image(systemName: "checkmark") }
+                        }
+                    }.accessibilityAddTraits(selection.contains(exercise.id) ? .isSelected : [])
+                }
+                .navigationTitle("Choose exercises")
+                .toolbar { Button("Done") { choosing = false } }
+            }
+        }
         .task(id: "\(from)|\(to)|\(retry)|\(model.progressaConnected)") {
             loading = true
             error = nil
             do {
                 let result = try await model.progressIndex(from: from.isEmpty ? nil : from, to: to.isEmpty ? nil : to)
                 try Task.checkCancellation()
+                if from.isEmpty && to.isEmpty { catalog = result.exercises }
                 dates = result.loggedDates
                 if from.isEmpty { from = dates.first ?? ""; to = dates.last ?? "" }
                 rows = result.exercises

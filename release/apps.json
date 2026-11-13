@@ -7,7 +7,7 @@
       "platform": "native-ios",
       "scheme": "QuantivitaNative",
       "tagPrefix": "quantivita-native-ios-v",
-      "currentVersion": "0.5.0",
+      "currentVersion": "0.6.0",
       "bundleIdentifier": "com.bryandijkh.quantivita",
       "teamId": "85RT3VH5D8",
       "testCommand": "bash ../scripts/test_quantivita_native.sh"
@@ -19,7 +19,7 @@
       "platform": "native-ios",
       "scheme": "ProgressaNative",
       "tagPrefix": "progressa-native-ios-v",
-      "currentVersion": "2.2.1",
+      "currentVersion": "2.3.0",
       "bundleIdentifier": "com.bryandijkh.progressa",
       "extensionBundleIdentifiers": ["com.bryandijkh.progressa.liveactivity"],
       "teamId": "85RT3VH5D8",

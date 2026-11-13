@@ -176,7 +176,7 @@ private struct RoutineSetEditor: View {
         NavigationStack {
             Form {
                 TextField("Reps", text: $reps).keyboardType(.numberPad)
-                TextField("Weight (\(model.workoutWeightUnit))", text: $weight).keyboardType(.decimalPad)
+                TextField("Added weight (\(model.workoutWeightUnit))", text: $weight).keyboardType(.decimalPad)
                 TextField("RIR", text: $rir).keyboardType(.numberPad)
                 Picker("Side", selection: $side) { Text("Both").tag(""); Text("Left").tag("L"); Text("Right").tag("R") }
             }

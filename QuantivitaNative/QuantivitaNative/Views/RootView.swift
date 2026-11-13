@@ -124,6 +124,7 @@ private struct MainTabView: View {
             NavigationStack { TodayView() }.tabItem { Label("Today", systemImage: "sun.max.fill") }
             NavigationStack { BiomarkersView() }.tabItem { Label("Trends", systemImage: "chart.xyaxis.line") }
             NavigationStack { WorkoutsView() }.tabItem { Label("Log", systemImage: "figure.run") }
+            NavigationStack { StrengthIndexView() }.tabItem { Label("Progress Index", systemImage: "chart.line.uptrend.xyaxis") }
             NavigationStack { SettingsView() }.tabItem { Label("You", systemImage: "person.crop.circle") }
         }
     }
@@ -156,5 +157,72 @@ struct Panel<Content: View>: View {
                     .stroke(.white.opacity(0.45), lineWidth: 1)
             }
             .shadow(color: .black.opacity(0.08), radius: 18, y: 12)
+    }
+}
+
+private struct StrengthIndexView: View {
+    @EnvironmentObject private var model: AppModel
+    @State private var dates: [String] = []
+    @State private var from = ""
+    @State private var to = ""
+    @State private var rows: [StrengthIndex.Exercise] = []
+    @State private var error: String?
+    @State private var loading = true
+    @State private var retry = 0
+
+    var body: some View {
+        List {
+            if !dates.isEmpty {
+                Section("Logged workout dates") {
+                    Picker("From", selection: $from) {
+                        ForEach(dates.filter { $0 <= to }, id: \.self) { Text($0).tag($0) }
+                    }
+                    Picker("Through", selection: $to) {
+                        ForEach(dates.filter { $0 >= from }, id: \.self) { Text($0).tag($0) }
+                    }
+                }
+            }
+            if loading { ProgressView() }
+            else if let error {
+                Text(error)
+                Button("Retry") { retry += 1 }
+            } else if rows.isEmpty {
+                Text("No weighted working sets in this period.")
+            } else {
+                Section {
+                    ForEach(rows) { row in
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(row.name).font(.headline)
+                            if row.days > 1 {
+                                Text("Index \(row.index.formatted(.number.precision(.fractionLength(2)))) · \((row.index - 1).formatted(.percent.precision(.fractionLength(0)).sign(strategy: .always())))")
+                                    .font(.title3.bold())
+                            } else { Text("Baseline · 1.00").font(.subheadline) }
+                            measurement(row.baseline)
+                            if row.days > 1 { measurement(row.current) }
+                        }.padding(.vertical, 4)
+                    }
+                } footer: { Text("Each exercise starts at 1.00. The index compares the best estimated 1RM on its first and last logged days in this period, using total weight × (1 + reps / 30).") }
+            }
+        }
+        .navigationTitle("Progress Index")
+        .task(id: "\(from)|\(to)|\(retry)|\(model.progressaConnected)") {
+            loading = true
+            error = nil
+            do {
+                let result = try await model.progressIndex(from: from.isEmpty ? nil : from, to: to.isEmpty ? nil : to)
+                try Task.checkCancellation()
+                dates = result.loggedDates
+                if from.isEmpty { from = dates.first ?? ""; to = dates.last ?? "" }
+                rows = result.exercises
+                loading = false
+            } catch where Task.isCancelled {} catch { self.error = error.localizedDescription; loading = false }
+        }
+    }
+
+    private func measurement(_ set: StrengthIndex.Measurement) -> some View {
+        VStack(alignment: .leading) {
+            Text("\(set.day) · \(set.total.formatted()) kg × \(set.reps) · e1RM \(set.estimate.formatted(.number.precision(.fractionLength(0...1)))) kg")
+            if set.base > 0 { Text("Base \(set.base.formatted()) + added \(set.added.formatted()) kg") }
+        }.font(.caption).foregroundStyle(.secondary)
     }
 }

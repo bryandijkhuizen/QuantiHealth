@@ -227,6 +227,8 @@ struct ProgressaExercise: Identifiable, Hashable, Codable {
 
 struct ProgressaWorkoutSet: Identifiable, Hashable, Codable {
     let id: String
+    var baseWeightKg: Double? = nil
+    var addedWeightKg: Double? { weightKg.map { $0 - (baseWeightKg ?? 0) } }
     var weightKg: Double?
     var reps: Int?
     var rir: Double?

@@ -221,6 +221,9 @@ struct ProgressaExercise: Codable, Hashable, Identifiable {
 
 struct ProgressaSet: Codable, Hashable, Identifiable {
     var id: String { "\(createdAt ?? "")-\(weightKg ?? 0)-\(reps ?? 0)-\(side ?? "")" }
+    var baseWeightKg: Double? = nil
+    var addedWeightKg: Double? = nil
+    var totalWeightKg: Double? = nil
     var weightKg: Double?
     var reps: Int?
     var rir: Double?
@@ -269,4 +272,20 @@ private extension KeyedDecodingContainer {
         }
         return Date(timeIntervalSince1970: normalized)
     }
+}
+
+struct StrengthIndex: Decodable {
+    struct Measurement: Decodable {
+        let day: String
+        let total, base, added, estimate: Double
+        let reps: Int
+    }
+    struct Exercise: Decodable, Identifiable {
+        let id, name: String
+        let days: Int
+        let baseline, current: Measurement
+        let index: Double
+    }
+    let loggedDates: [String]
+    let exercises: [Exercise]
 }

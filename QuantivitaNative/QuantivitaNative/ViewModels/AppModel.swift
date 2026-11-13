@@ -279,6 +279,11 @@ final class AppModel: ObservableObject {
         } catch { message = error.localizedDescription }
     }
 
+    func progressIndex(from: String?, to: String?) async throws -> StrengthIndex {
+        guard let account else { throw APIError.invalidResponse }
+        return try await api.progressIndex(account: account, from: from, to: to)
+    }
+
     func syncProgressa() async {
         await loadProgressa(showErrors: true)
     }

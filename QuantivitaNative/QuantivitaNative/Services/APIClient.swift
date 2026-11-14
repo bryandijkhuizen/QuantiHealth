@@ -27,6 +27,19 @@ final class APIClient {
         self.session = session
     }
 
+    func workoutMerges(account: QuantivitaAccount) async throws -> WorkoutMergeState {
+        try await request(path: "/api/users/\(escaped(account.accountId))/workout-merges", token: account.syncToken)
+    }
+    func previewMerge(account: QuantivitaAccount, ids: [String], strategy: String) async throws -> WorkoutMergePreview {
+        try await request(path: "/api/users/\(escaped(account.accountId))/workout-merges/preview", method: "POST", token: account.syncToken, body: ["workoutIds": ids, "strategy": strategy])
+    }
+    func mergeWorkouts(account: QuantivitaAccount, ids: [String], strategy: String) async throws -> WorkoutMergeState {
+        try await request(path: "/api/users/\(escaped(account.accountId))/workout-merges", method: "POST", token: account.syncToken, body: ["workoutIds": ids, "strategy": strategy])
+    }
+    func undoMerge(account: QuantivitaAccount, id: String) async throws -> WorkoutMergeState {
+        try await request(path: "/api/users/\(escaped(account.accountId))/workout-merges/\(escaped(id))/undo", method: "POST", token: account.syncToken)
+    }
+
     func register(_ account: QuantivitaAccount) async throws {
         _ = try await request(
             path: "/api/accounts/register", method: "POST",
@@ -216,8 +229,8 @@ final class APIClient {
             "energyKcal": workout.effectiveEnergyKcal,
             "totalEnergyKcal": workout.totalEnergyKcal,
             "distanceMeters": workout.distanceMeters,
-            "averageHeartRate": workout.averageHeartRate,
-            "maxHeartRate": workout.maxHeartRate, "typeCode": workout.typeCode,
+            "averageHeartRate": workout.averageHeartRate > 0 ? workout.averageHeartRate as Any : NSNull(),
+            "maxHeartRate": workout.maxHeartRate > 0 ? workout.maxHeartRate as Any : NSNull(), "typeCode": workout.typeCode,
             "hasRoute": workout.hasRoute,
         ]
         if let details = workout.progressaDetails,
@@ -226,6 +239,18 @@ final class APIClient {
             payload["progressaDetails"] = object
         }
         payload["elevationGainMeters"] = workout.elevationGainMeters
+        payload["elapsedDurationMinutes"] = workout.elapsedDurationMinutes
+        if workout.distanceAvailable == false { payload["distanceMeters"] = NSNull() }
+        if workout.energyAvailable == false { payload["energyKcal"] = NSNull(); payload["totalEnergyKcal"] = NSNull() }
+        payload["avgPowerWatts"] = workout.avgPowerWatts as Any? ?? NSNull()
+        payload["maxPowerWatts"] = workout.maxPowerWatts as Any? ?? NSNull()
+        payload["normalizedPowerWatts"] = workout.normalizedPowerWatts as Any? ?? NSNull()
+        payload["avgCadenceRpm"] = workout.avgCadenceRpm as Any? ?? NSNull()
+        payload["maxCadenceRpm"] = workout.maxCadenceRpm as Any? ?? NSNull()
+        payload["provider"] = workout.provider as Any? ?? NSNull()
+        payload["importedVia"] = workout.importedVia as Any? ?? NSNull()
+        payload["distanceAvailable"] = workout.distanceAvailable as Any? ?? NSNull()
+        payload["energyAvailable"] = workout.energyAvailable as Any? ?? NSNull()
         payload["sourceName"] = workout.sourceName
         payload["sourceBundleIdentifier"] = workout.sourceBundleIdentifier
         if let telemetry = workout.telemetry,

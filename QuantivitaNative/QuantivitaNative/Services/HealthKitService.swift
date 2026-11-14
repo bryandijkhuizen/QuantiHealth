@@ -19,9 +19,10 @@ final class HealthKitService {
 
     func requestAuthorization() async throws {
         guard HKHealthStore.isHealthDataAvailable() else { throw HealthKitError.unavailable }
-        let reads = Set([
+        var reads = Set([
             HKObjectType.quantityType(forIdentifier: .stepCount),
             HKObjectType.quantityType(forIdentifier: .distanceWalkingRunning),
+            HKObjectType.quantityType(forIdentifier: .distanceCycling),
             HKObjectType.quantityType(forIdentifier: .activeEnergyBurned),
             HKObjectType.quantityType(forIdentifier: .basalEnergyBurned),
             HKObjectType.quantityType(forIdentifier: .dietaryEnergyConsumed),
@@ -51,6 +52,11 @@ final class HealthKitService {
             HKObjectType.workoutType(),
             HKSeriesType.workoutRoute(),
         ].compactMap { $0 })
+        if #available(iOS 17.0, *) {
+            for identifier: HKQuantityTypeIdentifier in [.cyclingPower, .cyclingCadence, .cyclingSpeed] {
+                if let type = HKObjectType.quantityType(forIdentifier: identifier) { reads.insert(type) }
+            }
+        }
         let shares: Set<HKSampleType> = Set([
             HKObjectType.workoutType(), HKSeriesType.workoutRoute(),
             HKObjectType.quantityType(forIdentifier: .activeEnergyBurned),
@@ -371,11 +377,30 @@ final class HealthKitService {
                 typeCode: workout.workoutActivityType.quantivitaCode, hasRoute: !route.isEmpty,
                 sourceName: source.name, sourceBundleIdentifier: source.bundleIdentifier
             ))
-            if workout.workoutActivityType == .running {
+            let index = result.count - 1
+            result[index].elapsedDurationMinutes = workout.endDate.timeIntervalSince(workout.startDate) / 60
+            result[index].importedVia = "healthkit"
+            // HealthKit identifies the writer; an upstream provider is not guessed.
+            result[index].provider = source.bundleIdentifier
+            result[index].externalWorkoutId = (workout.metadata?[HKMetadataKeyExternalUUID] as? String)
+                ?? (workout.metadata?[HKMetadataKeySyncIdentifier] as? String)
+            result[index].distanceAvailable = workout.totalDistance != nil
+            result[index].energyAvailable = workout.totalEnergyBurned != nil
+            if workout.workoutActivityType == .cycling, #available(iOS 17.0, *) {
+                let power = HKQuantityType.quantityType(forIdentifier: .cyclingPower)!
+                let cadence = HKQuantityType.quantityType(forIdentifier: .cyclingCadence)!
+                let rpm = HKUnit.count().unitDivided(by: .minute())
+                result[index].avgPowerWatts = workout.statistics(for: power)?.averageQuantity()?.doubleValue(for: .watt())
+                result[index].maxPowerWatts = workout.statistics(for: power)?.maximumQuantity()?.doubleValue(for: .watt())
+                result[index].avgCadenceRpm = workout.statistics(for: cadence)?.averageQuantity()?.doubleValue(for: rpm)
+                result[index].maxCadenceRpm = workout.statistics(for: cadence)?.maximumQuantity()?.doubleValue(for: rpm)
+            }
+            if workout.workoutActivityType == .running || workout.workoutActivityType == .cycling {
                 var telemetry = await trainingTelemetry(for: workout)
                 telemetry.kilometerSplits = Self.routeSplits(route, events: workout.workoutEvents ?? [])
                 if !telemetry.kilometerSplits.isEmpty { telemetry.splitMethod = "gps-distance-active-time" }
                 result[result.count - 1].telemetry = telemetry
+                result[result.count - 1].normalizedPowerWatts = telemetry.normalizedPowerWatts
             }
         }
         return result
@@ -400,8 +425,18 @@ final class HealthKitService {
             guard samples.count > 240 else { return samples }
             return (0..<240).map { samples[$0 * (samples.count - 1) / 239] }
         }
-        result.heartRateSamples = bounded(heart).map {
-            .init(time: $0.startDate.ISO8601Format(), bpm: $0.quantity.doubleValue(for: HKUnit.count().unitDivided(by: .minute())))
+        if workout.workoutActivityType == .cycling, #available(iOS 17.0, *) {
+            let power = await trainingSamples(.cyclingPower, for: workout)
+            let cadence = await trainingSamples(.cyclingCadence, for: workout)
+            let allPower: [WorkoutTelemetry.CyclingSample] = power.map { .init(time: $0.startDate.ISO8601Format(), endTime: $0.endDate.ISO8601Format(), value: $0.quantity.doubleValue(for: .watt())) }
+            if !(workout.workoutEvents ?? []).contains(where: { $0.type == .pause || $0.type == .motionPaused }) {
+                result.normalizedPowerWatts = Self.normalizedCyclingPower(allPower, start: workout.startDate, end: workout.endDate)
+            }
+            result.powerSamples = bounded(power).map { .init(time: $0.startDate.ISO8601Format(), endTime: $0.endDate.ISO8601Format(), value: $0.quantity.doubleValue(for: .watt())) }
+            result.cadenceSamples = bounded(cadence).map { .init(time: $0.startDate.ISO8601Format(), endTime: $0.endDate.ISO8601Format(), value: $0.quantity.doubleValue(for: HKUnit.count().unitDivided(by: .minute()))) }
+        }
+        result.heartRateSamples = bounded(heart).filter { $0.quantity.doubleValue(for: HKUnit.count().unitDivided(by: .minute())) > 0 }.map {
+            .init(time: $0.startDate.ISO8601Format(), bpm: $0.quantity.doubleValue(for: HKUnit.count().unitDivided(by: .minute())), endTime: $0.endDate.ISO8601Format())
         }
         result.speedSamples = bounded(speed).map {
             .init(time: $0.startDate.ISO8601Format(), metersPerSecond: $0.quantity.doubleValue(for: .meter().unitDivided(by: .second())))
@@ -435,6 +470,32 @@ final class HealthKitService {
             result.cadenceStepsPerMinute = steps / (workout.duration / 60)
         }
         return result
+    }
+
+    /// NP requires complete, contiguous one-second power records; sparse HealthKit exports stay unknown.
+    static func normalizedCyclingPower(_ samples: [WorkoutTelemetry.CyclingSample], start: Date, end: Date) -> Double? {
+        let formatter = ISO8601DateFormatter()
+        let rows = samples.sorted { $0.time < $1.time }
+        guard rows.count >= 30, abs(end.timeIntervalSince(start) - Double(rows.count)) < 1 else { return nil }
+        var expected = start
+        var values: [Double] = []
+        for row in rows {
+            guard row.value.isFinite, row.value >= 0,
+                  let time = formatter.date(from: row.time), let stop = formatter.date(from: row.endTime),
+                  abs(time.timeIntervalSince(expected)) < 0.1,
+                  abs(stop.timeIntervalSince(time) - 1) < 0.1 else { return nil }
+            values.append(row.value); expected = stop
+        }
+        guard abs(expected.timeIntervalSince(end)) < 0.1 else { return nil }
+        var rolling = values.prefix(30).reduce(0, +)
+        var fourthPowers = pow(rolling / 30, 4)
+        if values.count > 30 {
+            for index in 30..<values.count {
+                rolling += values[index] - values[index - 30]
+                fourthPowers += pow(rolling / 30, 4)
+            }
+        }
+        return pow(fourthPowers / Double(values.count - 29), 0.25)
     }
 
     static func intervalMetadata(_ metadata: [String: Any]?) -> [String: String]? {

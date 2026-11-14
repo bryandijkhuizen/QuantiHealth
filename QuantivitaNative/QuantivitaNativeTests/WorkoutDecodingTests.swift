@@ -5,6 +5,39 @@ import WorkoutKit
 @testable import QuantivitaNative
 
 final class WorkoutDecodingTests: XCTestCase {
+    func testCyclingMissingAndZeroMetricsSurviveWireAndCache() throws {
+        var ride = Workout(id: "ride", title: "Cycling", startTime: .now, durationMinutes: 20, energyKcal: 0)
+        ride.avgPowerWatts = 0
+        ride.energyAvailable = false
+        let payload = APIClient().workoutPayload(ride)
+        XCTAssertTrue(payload["averageHeartRate"] is NSNull)
+        XCTAssertTrue(payload["maxHeartRate"] is NSNull)
+        XCTAssertEqual(payload["avgPowerWatts"] as? Double, 0)
+        XCTAssertTrue(payload["avgCadenceRpm"] is NSNull)
+        let decoded = try JSONDecoder().decode(Workout.self, from: JSONEncoder().encode(ride))
+        XCTAssertEqual(decoded.avgPowerWatts, 0)
+        XCTAssertNil(decoded.avgCadenceRpm)
+        XCTAssertEqual(decoded.energyAvailable, false)
+    }
+    func testMergeProjectionHidesSourcesAndSurvivesCache() throws {
+        let start = Date.now
+        let a = Workout(id: "a", title: "Cycling", startTime: start, durationMinutes: 20, energyKcal: 200)
+        let b = Workout(id: "b", title: "Cycling", startTime: start, durationMinutes: 20, energyKcal: 200)
+        let merged = Workout(id: "merge:1", title: "Combined", startTime: start, durationMinutes: 40, energyKcal: 400)
+        let state = WorkoutMergeState(workouts: [merged], hiddenWorkoutIds: ["a", "b"])
+        let decoded = try JSONDecoder().decode(WorkoutMergeState.self, from: JSONEncoder().encode(state))
+        XCTAssertEqual(decoded.applying(to: [a,b]).map(\.id), ["merge:1"])
+        XCTAssertEqual(WorkoutMergeState().applying(to: [a,b]).count, 2)
+    }
+    func testNormalizedPowerRequiresCompleteOneSecondRecords() throws {
+        let start = Date(timeIntervalSince1970: 1_700_000_000)
+        let rows: [WorkoutTelemetry.CyclingSample] = (0..<60).map { i in
+            .init(time: start.addingTimeInterval(Double(i)).ISO8601Format(), endTime: start.addingTimeInterval(Double(i+1)).ISO8601Format(), value: 200)
+        }
+        XCTAssertEqual(try XCTUnwrap(HealthKitService.normalizedCyclingPower(rows, start: start, end: start.addingTimeInterval(60))), 200, accuracy: 0.01)
+        XCTAssertNil(HealthKitService.normalizedCyclingPower(Array(rows.dropFirst()), start: start, end: start.addingTimeInterval(60)))
+    }
+
     func testRecordedActivityExportPreservesDurationWithoutInventingDistance() throws {
         let config = HKWorkoutConfiguration()
         config.activityType = .running

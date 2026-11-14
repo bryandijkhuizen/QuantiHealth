@@ -35,6 +35,9 @@ struct SettingsView: View {
                 }.padding(.vertical, 8)
             }
             Section("Connections") {
+                Button("Review Apple Health permissions") { Task { await model.authorizeHealth() } }
+                    .disabled(model.isLoading)
+                Text("Allow cycling power and cadence to include measurements from connected sensors.").font(.footnote).foregroundStyle(.secondary)
                 HStack {
                     Label("Apple Health", systemImage: "heart.fill")
                     Spacer()

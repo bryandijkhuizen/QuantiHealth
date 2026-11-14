@@ -1,6 +1,27 @@
 import XCTest
 
 final class LinkedProgressaUITests: XCTestCase {
+    func testCyclingDetailsAndCombineSelection() {
+        let app = XCUIApplication()
+        app.launchArguments.append("-uiTestingCycling")
+        app.launch()
+        app.tabBars.buttons["Log"].tap()
+        XCTAssertTrue(app.staticTexts["Indoor Cycling · Part 1"].waitForExistence(timeout: 5))
+        app.staticTexts["Indoor Cycling · Part 1"].tap()
+        XCTAssertTrue(app.staticTexts["185 W"].waitForExistence(timeout: 3))
+        XCTAssertFalse(app.staticTexts["0 bpm"].exists)
+        let details = XCTAttachment(screenshot: app.screenshot())
+        details.name = "Cycling measurements"; details.lifetime = .keepAlways; add(details)
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        app.buttons["Combine"].tap()
+        XCTAssertTrue(app.staticTexts["Combine activities"].waitForExistence(timeout: 3))
+        app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Indoor Cycling · Part 1")).firstMatch.tap()
+        app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Indoor Cycling · Part 2")).firstMatch.tap()
+        XCTAssertTrue(app.buttons["Preview combination"].isEnabled)
+        let selection = XCTAttachment(screenshot: app.screenshot())
+        selection.name = "Combine selection"; selection.lifetime = .keepAlways; add(selection)
+    }
+
     func testOnlyLinkedProgressaDetailsAppearInsideHealthActivity() {
         let app = XCUIApplication()
         app.launchArguments.append("-uiTestingLinkedProgressa")

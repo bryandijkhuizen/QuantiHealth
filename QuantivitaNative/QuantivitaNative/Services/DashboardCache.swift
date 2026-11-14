@@ -5,6 +5,7 @@ struct DashboardCache: Codable {
     let summary: HealthSummary
     let workouts: [Workout]
     let savedAt: Date
+    var workoutMerges: WorkoutMergeState?
 }
 
 final class DashboardCacheStore {
@@ -45,8 +46,8 @@ final class DashboardCacheStore {
         return try? JSONDecoder().decode(DashboardCache.self, from: data)
     }
 
-    func save(accountId: String, summary: HealthSummary, workouts: [Workout]) {
-        let value = DashboardCache(summary: summary, workouts: workouts, savedAt: .now)
+    func save(accountId: String, summary: HealthSummary, workouts: [Workout], workoutMerges: WorkoutMergeState? = nil) {
+        let value = DashboardCache(summary: summary, workouts: workouts, savedAt: .now, workoutMerges: workoutMerges)
         guard let data = try? JSONEncoder().encode(value) else { return }
         try? data.write(to: fileURL(accountId: accountId), options: [.atomic, .completeFileProtection])
     }

@@ -94,6 +94,16 @@ export function openapiDocument(baseUrl) {
           tags: ['Workouts'],
         },
       },
+      '/api/users/{accountId}/workout-merges': {
+        get: { ...operation('Get canonical combinations and hidden source IDs', { parameters: [accountParameter] }), tags: ['Workouts'] },
+        post: { ...operation('Confirm an in-app combination (idempotent)', { parameters: [accountParameter], requestBody: { $ref: '#/components/schemas/MergeRequest' } }), tags: ['Workouts'] },
+      },
+      '/api/users/{accountId}/workout-merges/preview': {
+        post: { ...operation('Preview totals, sources and overlap before combining', { parameters: [accountParameter], requestBody: { $ref: '#/components/schemas/MergeRequest' } }), tags: ['Workouts'] },
+      },
+      '/api/users/{accountId}/workout-merges/{mergeId}/undo': {
+        post: { ...operation('Restore original activities (idempotent)', { parameters: [accountParameter, {name: 'mergeId', in: 'path', required: true, schema: {type: 'string'}}] }), tags: ['Workouts'] },
+      },
       '/api/users/{accountId}/ingest': {
         post: {
           ...operation('Ingest health data and workouts', {
@@ -144,12 +154,21 @@ export function openapiDocument(baseUrl) {
     components: {
       securitySchemes: { bearerAuth: { type: 'http', scheme: 'bearer' } },
       schemas: {
+        MergeRequest: { type: 'object', required: ['workoutIds'], properties: {
+          workoutIds: {type: 'array', minItems: 2, maxItems: 100, uniqueItems: true, items: {type: 'string'}},
+          strategy: {type: 'string', enum: ['concatenate','time_only','duplicate'], default: 'concatenate', description: 'duplicate keeps the first selected source; time_only leaves overlapping distance, energy and averages unknown.'},
+        } },
         Workout: {
           type: 'object', required: ['id', 'title', 'startTime'],
           properties: {
             id: { type: 'string' }, source: { type: 'string' }, title: { type: 'string' },
             startTime: { type: 'string', format: 'date-time' }, durationMinutes: { type: 'number' },
-            energyKcal: { type: 'number' }, distanceMeters: { type: 'number' },
+            energyKcal: { type: ['number', 'null'] }, distanceMeters: { type: ['number', 'null'] },
+            avgPowerWatts: {type: ['number','null']}, maxPowerWatts: {type: ['number','null']}, normalizedPowerWatts: {type: ['number','null']},
+            avgCadenceRpm: {type: ['number','null']}, maxCadenceRpm: {type: ['number','null']},
+            averageHeartRate: {type: ['number','null']}, maxHeartRate: {type: ['number','null']},
+            provider: {type: ['string','null']}, importedVia: {type: ['string','null']}, externalWorkoutId: {type: ['string','null']},
+            merge: {type: ['object','null'], additionalProperties: true},
           },
           additionalProperties: true,
         },

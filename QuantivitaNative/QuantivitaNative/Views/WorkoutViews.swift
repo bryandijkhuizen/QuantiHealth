@@ -84,16 +84,17 @@ struct MergeLabView: View {
                         preview = nil; strategy = "concatenate"
                     } label: {
                         HStack(alignment: .top) {
-                            Image(systemName: selected.contains(workout.id) ? "checkmark.circle.fill" : "circle")
+                            Image(systemName: selected.contains(workout.id) ? "checkmark.circle.fill" : "circle").foregroundStyle(.tint)
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(workout.title).foregroundStyle(.primary)
-                                Text(workout.startTime.formatted(date: .abbreviated, time: .shortened))
+                                Text(workout.startTime.formatted(date: .abbreviated, time: .shortened)).foregroundStyle(.secondary)
                                 Text("\(Int(workout.durationMinutes)) min · \(workout.sourceName ?? workout.source)")
                                 Text("Ends \((workout.startTime.addingTimeInterval((workout.elapsedDurationMinutes ?? workout.durationMinutes) * 60)).formatted(date: .abbreviated, time: .shortened))")
-                                if selected.first == workout.id { Text("First selected source").foregroundStyle(QuantivitaTheme.accent) }
+                                if selected.first == workout.id { Text("First selected source").foregroundStyle(.tint) }
                             }.font(.subheadline)
                         }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 3)
                     }
+                    .buttonStyle(.plain)
                     .accessibilityAddTraits(selected.contains(workout.id) ? .isSelected : [])
                 }
             }.disabled(busy)
@@ -160,9 +161,11 @@ struct WorkoutDetailView: View {
         ScrollView {
             VStack(spacing: 14) {
                 Panel {
-                    Image(systemName: workout.progressaDetails != nil ? "dumbbell.fill" : "figure.run").font(.largeTitle).foregroundStyle(.purple)
-                    Text(workout.title).font(.title.bold())
-                    Text(workout.startTime.formatted(date: .long, time: .shortened)).foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 10) {
+                        Image(systemName: workout.progressaDetails != nil ? "dumbbell.fill" : workout.typeCode == 3 ? "figure.indoor.cycle" : "figure.run").font(.largeTitle).foregroundStyle(.tint)
+                        Text(workout.title).font(.title.bold())
+                        Text(workout.startTime.formatted(date: .long, time: .shortened)).foregroundStyle(.secondary)
+                    }
                 }
                 HStack(spacing: 12) {
                     MetricPanel(title: "Duration", value: "\(Int(workout.effectiveDurationMinutes)) min", color: .purple)

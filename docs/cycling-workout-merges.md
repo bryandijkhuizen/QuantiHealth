@@ -8,7 +8,7 @@ Normalized power is calculated before sample downsampling only with a complete, 
 
 Raw imported records remain in the account data file. Combinations are stored separately in `<account>.merges.json`, atomically, under the same account authorization. Every read surface (REST, MCP, scoring and dashboard responses) projects the canonical records. Native raw HealthKit records remain separate from the canonical display state; both are cached in the existing account-scoped protected dashboard cache. An undo response includes restored records even if they fall outside the device's current HealthKit lookback.
 
-Automatic deduplication requires the same provider-issued external identity, sport, and start within one minute. Timing resemblance alone is insufficient. Provenance from every copy is retained. An alias reimported after a manual merge remains hidden. Original records are never deleted by merge or undo, and no external provider API is called.
+Automatic deduplication requires the same provider-issued external identity, sport, and start within one minute. Timing resemblance alone is insufficient. Provenance from every copy is retained; the source with the most available cycling/heart-rate summary fields supplies the canonical measurements. An alias reimported after a manual merge remains hidden. Original records are never deleted by merge or undo, and no external provider API is called.
 
 ## Calculation and choices
 

@@ -134,6 +134,7 @@ function identity(workout) {
 }
 
 export function canonicalWorkouts(workouts = [], merges = []) {
+  workouts = workouts.map(w => ({...w, averageHeartRate: positive(w.averageHeartRate), maxHeartRate: positive(w.maxHeartRate)}));
   const consumed = new Set();
   const canonical = [];
   for (const merge of merges.filter(m => !m.undoneAt)) {
@@ -163,7 +164,11 @@ export function canonicalWorkouts(workouts = [], merges = []) {
     const key = identity(workout);
     const duplicate = key && identities.get(key);
     if (duplicate && duplicate.typeCode === workout.typeCode && Math.abs(millis(duplicate.startTime) - millis(workout.startTime)) < 60000) {
-      duplicate.duplicateSources.push(provenance(workout));
+      const sources = [...duplicate.duplicateSources, provenance(workout)];
+      const completeness = row => ['avgPowerWatts','maxPowerWatts','avgCadenceRpm','maxCadenceRpm','averageHeartRate','maxHeartRate'].filter(key => number(row[key]) !== null).length;
+      if (completeness(workout) > completeness(duplicate)) Object.assign(duplicate, workout);
+      duplicate.duplicateSources = sources;
+      duplicate.metricsNote = 'Automatically deduplicated by provider identity. Measurements use the source with the most available cycling and heart-rate summary fields.';
       consumed.add(workout.id);
     } else {
       const copy = { ...workout, duplicateSources: [provenance(workout)] };

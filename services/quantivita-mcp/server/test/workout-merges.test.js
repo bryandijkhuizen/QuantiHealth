@@ -50,10 +50,11 @@ test('reject missing or mixed-sport sources and repeated membership', () => {
 });
 test('automatic dedup requires provider identity and retains provenance', () => {
   const a = ride('a',0,{provider:'strava',externalWorkoutId:'42'});
-  const b = ride('b',0,{provider:'strava',externalWorkoutId:'42'});
+  const b = ride('b',0,{provider:'strava',externalWorkoutId:'42',avgPowerWatts:200});
   const result = canonicalWorkouts([a,b]);
   assert.equal(result.length,1);
   assert.equal(result[0].duplicateSources.length,2);
+  assert.equal(result[0].avgPowerWatts,200);
   assert.equal(canonicalWorkouts([a, {...b,externalWorkoutId:'43'}]).length,2);
   assert.equal(canonicalWorkouts([ride('a',0),ride('b',0)]).length,2);
 });

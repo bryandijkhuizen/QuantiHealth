@@ -12,6 +12,18 @@ if not phones:
 print(phones[0]["udid"])
 ')"
 
+# GitHub macOS runners can hang after compilation while Xcode implicitly boots
+# the simulator. Wait for an explicit boot before starting the test runner.
+if [[ "${CI:-}" == "true" ]]; then
+  python3 - "$DEVICE_ID" <<'PYBOOT'
+import subprocess, sys
+try:
+    subprocess.run(["xcrun", "simctl", "bootstatus", sys.argv[1], "-b"], check=True, timeout=180)
+except subprocess.TimeoutExpired:
+    sys.exit("iOS simulator did not finish booting within 180 seconds")
+PYBOOT
+fi
+
 xcodebuild test \
   -project "$PROJECT_ROOT/QuantivitaNative/QuantivitaNative.xcodeproj" \
   -scheme QuantivitaNative \

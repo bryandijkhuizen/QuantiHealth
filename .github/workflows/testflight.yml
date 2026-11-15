@@ -81,6 +81,7 @@ jobs:
         run: xcodebuild -version
 
       - name: Test Quantivita before distribution
+        timeout-minutes: 10
         if: matrix.app.id == 'quantivita-native'
         run: bash scripts/test_quantivita_native.sh
 

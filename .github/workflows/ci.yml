@@ -26,6 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run native unit tests
+        timeout-minutes: 10
         run: bash scripts/test_quantivita_native.sh
 
   quantivita-server:

@@ -8,6 +8,9 @@ final class AppModel: ObservableObject {
     @Published var stage: Stage = .authentication
     @Published var summary = HealthSummary()
     @Published var workouts: [Workout] = []
+    @Published private var mergeState = WorkoutMergeState()
+    var displayWorkouts: [Workout] { mergeState.applying(to: workouts) }
+
     @Published var weightHistory: [WeightSample] = []
     @Published var recovery = RecoveryScorer.calculate(summary: HealthSummary())
     @Published var dailyScores = DailyScoringEngine.calculate(summary: HealthSummary(), workouts: [])
@@ -33,6 +36,17 @@ final class AppModel: ObservableObject {
 
     func bootstrap() async {
 #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-uiTestingCycling") {
+            let start = Date.now.addingTimeInterval(-7200)
+            var first = Workout(id: "cycling-a", title: "Indoor Cycling · Part 1", startTime: start, durationMinutes: 20, energyKcal: 180, distanceMeters: 8000, typeCode: 3, sourceName: "Strava")
+            first.avgPowerWatts = 185; first.maxPowerWatts = 360
+            first.avgCadenceRpm = 82; first.maxCadenceRpm = 105
+            first.importedVia = "healthkit"
+            let second = Workout(id: "cycling-b", title: "Indoor Cycling · Part 2", startTime: start.addingTimeInterval(1800), durationMinutes: 20, energyKcal: 200, distanceMeters: 8500, typeCode: 3, sourceName: "Strava")
+            workouts = [second, first]
+            stage = .dashboard
+            return
+        }
         if ProcessInfo.processInfo.arguments.contains("-uiTestingLinkedProgressa") {
             let start = ISO8601DateFormatter().date(from: "2026-06-18T18:00:00Z")!
             workouts = [Workout(
@@ -59,9 +73,10 @@ final class AppModel: ObservableObject {
             if let account {
                 let cached = cache.load(accountId: account.accountId)
                 if let cached {
+                    mergeState = cached.workoutMerges ?? WorkoutMergeState()
                     summary = cached.summary
                     workouts = cached.workouts.filter { !$0.isProgressa }
-                    dailyScores = DailyScoringEngine.calculate(summary: summary, workouts: workouts)
+                    dailyScores = DailyScoringEngine.calculate(summary: summary, workouts: displayWorkouts)
                     recovery = dailyScores.recovery
                     healthConnectionLabel = cached.summary.hasAnyHealthData ? "Data available" : "Permission reviewed"
                 }
@@ -116,7 +131,7 @@ final class AppModel: ObservableObject {
         cache.clear(accountId: account.accountId)
         summary = HealthSummary()
         workouts = []
-        dailyScores = DailyScoringEngine.calculate(summary: summary, workouts: workouts)
+        dailyScores = DailyScoringEngine.calculate(summary: summary, workouts: displayWorkouts)
         recovery = dailyScores.recovery
         await refreshAll(showErrors: true)
         message = "Cached data was reset from Apple Health."
@@ -141,9 +156,10 @@ final class AppModel: ObservableObject {
     }
 
     private func resetSessionState() {
+        mergeState = WorkoutMergeState()
         summary = HealthSummary()
         workouts = []
-        dailyScores = DailyScoringEngine.calculate(summary: summary, workouts: workouts)
+        dailyScores = DailyScoringEngine.calculate(summary: summary, workouts: displayWorkouts)
         recovery = dailyScores.recovery
         progressaConnected = false
         stravaConnected = false
@@ -184,13 +200,13 @@ final class AppModel: ObservableObject {
             summary = result.0
             healthConnectionLabel = result.0.hasAnyHealthData ? "Data available" : "Permission reviewed"
             workouts = ProgressaWorkoutLinker.preserveLinks(from: workouts, on: result.1)
-            dailyScores = DailyScoringEngine.calculate(summary: summary, workouts: workouts)
+            dailyScores = DailyScoringEngine.calculate(summary: summary, workouts: displayWorkouts)
             recovery = dailyScores.recovery
         } catch where showErrors && !Self.isCancellation(error) {
             message = error.localizedDescription
         } catch {}
         if progressaConnected { await loadProgressa(showErrors: showErrors) }
-        if let account { cache.save(accountId: account.accountId, summary: summary, workouts: workouts) }
+        if let account { cache.save(accountId: account.accountId, summary: summary, workouts: workouts, workoutMerges: mergeState) }
         await syncHomeserver()
     }
 
@@ -206,7 +222,7 @@ final class AppModel: ObservableObject {
             workouts = ProgressaWorkoutLinker.preserveLinks(from: workouts, on: fresh)
             loadedWorkoutDays = nextDays
             if progressaConnected { await loadProgressa(showErrors: false, days: nextDays) }
-            if let account { cache.save(accountId: account.accountId, summary: summary, workouts: workouts) }
+            if let account { cache.save(accountId: account.accountId, summary: summary, workouts: workouts, workoutMerges: mergeState) }
         } catch where !Self.isCancellation(error) { message = error.localizedDescription }
         catch {}
     }
@@ -223,9 +239,9 @@ final class AppModel: ObservableObject {
             summary = result.0
             workouts = ProgressaWorkoutLinker.preserveLinks(from: workouts, on: result.1)
             if progressaConnected { await loadProgressa(showErrors: true, days: nil) }
-            dailyScores = DailyScoringEngine.calculate(summary: summary, workouts: workouts)
+            dailyScores = DailyScoringEngine.calculate(summary: summary, workouts: displayWorkouts)
             recovery = dailyScores.recovery
-            if let account { cache.save(accountId: account.accountId, summary: summary, workouts: workouts) }
+            if let account { cache.save(accountId: account.accountId, summary: summary, workouts: workouts, workoutMerges: mergeState) }
             if await syncHomeserver() { message = "All workouts synced." }
         } catch where !Self.isCancellation(error) { message = error.localizedDescription }
         catch {}
@@ -247,9 +263,9 @@ final class AppModel: ObservableObject {
         summary.bodyMassKg = bodyMassKg ?? 0
         summary.heightCm = heightCm ?? 0
         summary.bodyFatPercent = bodyFatPercent ?? 0
-        dailyScores = DailyScoringEngine.calculate(summary: summary, workouts: workouts)
+        dailyScores = DailyScoringEngine.calculate(summary: summary, workouts: displayWorkouts)
         recovery = dailyScores.recovery
-        if let account { cache.save(accountId: account.accountId, summary: summary, workouts: workouts) }
+        if let account { cache.save(accountId: account.accountId, summary: summary, workouts: workouts, workoutMerges: mergeState) }
         await syncHomeserver()
         message = "Health profile saved."
     }
@@ -276,7 +292,7 @@ final class AppModel: ObservableObject {
             try await api.disconnectProgressa(account: account)
             progressaConnected = false
             workouts = ProgressaWorkoutLinker.attach([], to: workouts)
-            cache.save(accountId: account.accountId, summary: summary, workouts: workouts)
+            cache.save(accountId: account.accountId, summary: summary, workouts: workouts, workoutMerges: mergeState)
         } catch { message = error.localizedDescription }
     }
 
@@ -300,7 +316,7 @@ final class AppModel: ObservableObject {
                 to: .now
             )
             workouts = ProgressaWorkoutLinker.attach(incoming, to: workouts)
-            cache.save(accountId: account.accountId, summary: summary, workouts: workouts)
+            cache.save(accountId: account.accountId, summary: summary, workouts: workouts, workoutMerges: mergeState)
         } catch let error as APIError where error.statusCode == 401 {
             progressaConnected = false
             message = "Your Progressa connection expired and could not be refreshed. Connect Progressa again; cached linked workout details remain available."
@@ -438,9 +454,37 @@ final class AppModel: ObservableObject {
         stravaConnected = status.connected && status.canUpload
     }
 
+    private func applyMergeState(_ state: WorkoutMergeState, account: QuantivitaAccount) {
+        mergeState = state
+        cache.save(accountId: account.accountId, summary: summary, workouts: workouts, workoutMerges: state)
+        dailyScores = DailyScoringEngine.calculate(summary: summary, workouts: displayWorkouts)
+        recovery = dailyScores.recovery
+    }
+
+    func previewWorkoutMerge(ids: [String], strategy: String) async throws -> WorkoutMergePreview {
+        guard let account else { throw APIError.invalidResponse }
+        guard await syncHomeserver() else { throw APIError.server(503, "Sync your workouts before combining them.") }
+        return try await api.previewMerge(account: account, ids: ids, strategy: strategy)
+    }
+    func confirmWorkoutMerge(ids: [String], strategy: String) async throws {
+        guard let account else { throw APIError.invalidResponse }
+        let generation = sessionGeneration
+        let state = try await api.mergeWorkouts(account: account, ids: ids, strategy: strategy)
+        guard generation == sessionGeneration else { return }
+        applyMergeState(state, account: account)
+    }
+    func undoWorkoutMerge(id: String) async throws {
+        guard let account else { throw APIError.invalidResponse }
+        let generation = sessionGeneration
+        let state = try await api.undoMerge(account: account, id: id)
+        guard generation == sessionGeneration else { return }
+        applyMergeState(state, account: account)
+    }
+
     @discardableResult
     private func syncHomeserver() async -> Bool {
         guard let account else { return false }
+        let generation = sessionGeneration
         let syncedThroughKey = "weightHistorySyncedThrough.\(account.accountId)"
         let since = UserDefaults.standard.object(forKey: syncedThroughKey) as? Date ?? .distantPast
         let newWeightSamples = await health.weightHistory(since: since)
@@ -449,6 +493,9 @@ final class AppModel: ObservableObject {
                 account: account, summary: summary, recovery: recovery, workouts: workouts,
                 weightHistory: newWeightSamples
             )
+            let state = try await api.workoutMerges(account: account)
+            guard generation == sessionGeneration else { return false }
+            applyMergeState(state, account: account)
             if let latest = newWeightSamples.last?.date {
                 UserDefaults.standard.set(latest, forKey: syncedThroughKey)
             }

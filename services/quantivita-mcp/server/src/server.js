@@ -1,11 +1,12 @@
 import express from 'express';
+import { canonicalWorkouts, previewMerge, createMerge } from './workout-merges.js';
 import crypto from 'node:crypto';
 import cookieParser from 'cookie-parser';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { z } from 'zod';
-import { mkdir, readFile, writeFile, rm } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, rm, rename } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createObservability, userHash } from './observability.js';
@@ -217,7 +218,69 @@ app.delete('/api/users/:accountId', async (request, response) => {
   delete accounts[safeAccountId(accountId)];
   await writeAccounts(accounts);
   await rm(path.join(dataDir, `${safeAccountId(accountId)}.json`), { force: true });
+  await rm(path.join(dataDir, `${safeAccountId(accountId)}.merges.json`), { force: true });
   response.status(204).end();
+});
+
+const mergeLocks = new Map();
+async function withMergeLock(accountId, operation) {
+  const previous = mergeLocks.get(accountId) || Promise.resolve();
+  const pending = previous.catch(() => {}).then(operation);
+  mergeLocks.set(accountId, pending);
+  try { return await pending; }
+  finally { if (mergeLocks.get(accountId) === pending) mergeLocks.delete(accountId); }
+}
+async function readMerges(accountId) {
+  try { return JSON.parse(await readFile(path.join(dataDir, `${safeAccountId(accountId)}.merges.json`), 'utf8')); }
+  catch (error) { if (error.code === 'ENOENT') return []; throw error; }
+}
+async function writeMerges(accountId, merges) {
+  await mkdir(dataDir, { recursive: true });
+  const file = path.join(dataDir, `${safeAccountId(accountId)}.merges.json`);
+  await writeFile(`${file}.tmp`, JSON.stringify(merges));
+  await rename(`${file}.tmp`, file);
+}
+async function readUserData(accountId) {
+  const data = await readRawUserData(accountId);
+  return { ...data, workouts: canonicalWorkouts(data.workouts || [], await readMerges(accountId)) };
+}
+async function mergeState(accountId) {
+  const data = await readUserData(accountId);
+  const historicParts = new Set((await readMerges(accountId)).flatMap(m => m.sourceWorkoutIds));
+  const workouts = data.workouts.filter(w => w.merge || w.duplicateSources?.length > 1 || historicParts.has(w.id));
+  return { workouts, hiddenWorkoutIds: workouts.flatMap(w => w.merge?.sourceWorkoutIds || w.duplicateSources.map(s => s.id)) };
+}
+app.get('/api/users/:accountId/workout-merges', async (req, res) => {
+  try { res.json(await mergeState(req.params.accountId)); }
+  catch (error) { res.status(500).json({ error: error.message }); }
+});
+app.post('/api/users/:accountId/workout-merges/preview', async (req, res) => {
+  try {
+    const data = await readUserData(req.params.accountId);
+    res.json(previewMerge(data.workouts, req.body.workoutIds, req.body.strategy));
+  } catch (error) { res.status(400).json({ error: error.message }); }
+});
+app.post('/api/users/:accountId/workout-merges', async (req, res) => {
+  try {
+    await withMergeLock(req.params.accountId, async () => {
+      const data = await readRawUserData(req.params.accountId);
+      const merges = await readMerges(req.params.accountId);
+      const merge = createMerge(data.workouts, merges, req.body.workoutIds, req.body.strategy || 'concatenate', req.params.accountId);
+      if (!merges.some(m => m.id === merge.id)) await writeMerges(req.params.accountId, [...merges, merge]);
+    });
+    res.json(await mergeState(req.params.accountId));
+  } catch (error) { res.status(400).json({ error: error.message }); }
+});
+app.post('/api/users/:accountId/workout-merges/:mergeId/undo', async (req, res) => {
+  try {
+    await withMergeLock(req.params.accountId, async () => {
+      const merges = await readMerges(req.params.accountId);
+      const merge = merges.find(m => m.id === req.params.mergeId);
+      if (!merge) throw new Error('Combination not found.');
+      if (!merge.undoneAt) { merge.undoneAt = new Date().toISOString(); await writeMerges(req.params.accountId, merges); }
+    });
+    res.json(await mergeState(req.params.accountId));
+  } catch (error) { res.status(400).json({ error: error.message }); }
 });
 
 app.get('/api/users/:accountId/health', async (request, response) => {
@@ -331,7 +394,7 @@ app.delete('/api/users/:accountId/integrations/progressa', async (request, respo
     await writeAccounts(accounts);
   }
 
-  const data = await readUserData(request.params.accountId);
+  const data = await readRawUserData(request.params.accountId);
   const integrations = { ...(data.integrations || {}) };
   delete integrations.progressa;
   await writeUserData(request.params.accountId, {
@@ -549,7 +612,7 @@ app.get('/api/users/:accountId/export.csv', async (request, response) => {
 
 app.post('/api/users/:accountId/ingest', async (request, response) => {
   const started = performance.now();
-  const current = await readUserData(request.params.accountId);
+  const current = await readRawUserData(request.params.accountId);
   const incoming = normalizePayload(request.body);
   const next = {
     accountId: request.params.accountId,
@@ -571,7 +634,7 @@ app.post('/api/users/:accountId/ingest', async (request, response) => {
       progressa_workout_count: incoming.workouts.filter((workout) => workout.source === 'progressa').length,
     },
   });
-  response.status(202).json({ ok: true, summary: summaryFor(next) });
+  response.status(202).json({ ok: true, summary: summaryFor(await readUserData(request.params.accountId)) });
 });
 
 app.post('/api/users/:accountId/observability/logs', (request, response) => {
@@ -1310,6 +1373,10 @@ function workoutDocuments(data, args) {
         workoutType: workout.workoutType || workout.type || workout.typeCode || null,
         durationMinutes: workout.durationMinutes ?? null,
         energyKcal: workout.energyKcal ?? null,
+        avgPowerWatts: workout.avgPowerWatts ?? null,
+        avgCadenceRpm: workout.avgCadenceRpm ?? null,
+        averageHeartRate: Number(workout.averageHeartRate) > 0 ? Number(workout.averageHeartRate) : null,
+        combinedSourceCount: workout.merge?.sources.length ?? null,
         progressaSetCount: workout.progressaDetails?.totalSets ?? null,
         progressaVolumeKg: workout.progressaDetails?.totalVolumeKg ?? null,
       },
@@ -1396,12 +1463,17 @@ function compactWorkout(workout) {
     source: workout.source || 'quantivita',
     startTime: workout.startTime || workout.date || null,
     durationMinutes,
-    energyKcal,
+    energyKcal: workout.energyAvailable === false || workout.energyKcal == null ? null : energyKcal,
     effectiveDurationMinutes: roundToOneDecimal(effectiveDurationMinutes),
-    effectiveEnergyKcal: roundToOneDecimal(effectiveEnergyKcal),
-    distanceMeters: Number(workout.distanceMeters || 0),
-    averageHeartRate: Number(workout.averageHeartRate || 0),
-    maxHeartRate: Number(workout.maxHeartRate || 0),
+    effectiveEnergyKcal: workout.energyAvailable === false ? null : roundToOneDecimal(effectiveEnergyKcal),
+    distanceMeters: workout.distanceAvailable === false || workout.distanceMeters == null ? null : Number(workout.distanceMeters),
+    averageHeartRate: Number(workout.averageHeartRate) > 0 ? Number(workout.averageHeartRate) : null,
+    maxHeartRate: Number(workout.maxHeartRate) > 0 ? Number(workout.maxHeartRate) : null,
+    avgPowerWatts: workout.avgPowerWatts ?? null, maxPowerWatts: workout.maxPowerWatts ?? null,
+    avgCadenceRpm: workout.avgCadenceRpm ?? null, maxCadenceRpm: workout.maxCadenceRpm ?? null,
+    normalizedPowerWatts: workout.normalizedPowerWatts ?? null,
+    merge: workout.merge ?? null, duplicateSources: workout.duplicateSources ?? [],
+    metricsNote: workout.metricsNote ?? null, elapsedDurationMinutes: workout.elapsedDurationMinutes ?? null,
     progressaDetails: workout.progressaDetails
       ? {
           exerciseCount: progressaExerciseCount,
@@ -1580,6 +1652,9 @@ function dailyWindowAggregate(days) {
 function workoutAggregate(workouts) {
   return {
     count: workouts.length,
+    missingEnergyCount: workouts.filter(w => w.energyAvailable === false || w.energyKcal == null).length,
+    missingDistanceCount: workouts.filter(w => w.distanceAvailable === false || w.distanceMeters == null).length,
+    totalsNote: 'Totals include available canonical measurements only; missing values are not measured zeroes.',
     totalDurationMinutes: roundToOneDecimal(workouts.reduce((sum, workout) => {
       const compact = compactWorkout(workout);
       return sum + Number(compact.effectiveDurationMinutes || 0);
@@ -2249,7 +2324,7 @@ async function proxyProgressaRequest(request, response) {
   }
 }
 
-async function readUserData(accountId) {
+async function readRawUserData(accountId) {
   await mkdir(dataDir, { recursive: true });
   const file = path.join(dataDir, `${safeAccountId(accountId)}.json`);
   try {
@@ -2471,7 +2546,7 @@ async function saveProgressaConnection(accountId, { progressaUserId, accessToken
   accounts[key] = { ...account, progressa, updatedAt: new Date().toISOString() };
   await writeAccounts(accounts);
 
-  const data = await readUserData(accountId);
+  const data = await readRawUserData(accountId);
   const next = {
     ...data,
     updatedAt: new Date().toISOString(),
@@ -2557,7 +2632,7 @@ async function sendProgressaWorkouts(accountId, request, response) {
   try {
     const { parsed, progressa } = await fetchProgressa(accountId, request.query);
     const workouts = normalizeProgressaWorkouts(parsed);
-    const data = await readUserData(accountId);
+    const data = await readRawUserData(accountId);
     const next = {
       ...data,
       updatedAt: new Date().toISOString(),
@@ -2943,6 +3018,8 @@ function summaryFor(data) {
     updatedAt: data.updatedAt,
     latest,
     workoutCount: workouts.length,
+    missingEnergyCount: workouts.filter(w => w.energyAvailable === false || w.energyKcal == null).length,
+    missingDistanceCount: workouts.filter(w => w.distanceAvailable === false || w.distanceMeters == null).length,
     totals,
     readinessSignals: {
       hrvMs: latest.hrvMs || 0,

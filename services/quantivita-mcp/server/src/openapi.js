@@ -17,7 +17,7 @@ export function openapiDocument(baseUrl) {
     openapi: '3.1.0',
     info: {
       title: 'Quantivita API',
-      version: '0.2.0',
+      version: '0.4.0',
       description: 'REST and MCP endpoints for syncing and retrieving Quantivita health data.',
     },
     servers: [{ url: baseUrl }],

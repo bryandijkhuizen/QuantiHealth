@@ -21,22 +21,22 @@ struct WorkoutsView: View {
                 Label("Force sync all workouts", systemImage: "arrow.triangle.2.circlepath.circle")
             }
             .disabled(model.isLoading)
-            ForEach(model.workouts) { workout in
+            ForEach(model.displayWorkouts) { workout in
                 NavigationLink(value: workout) {
                     VStack(alignment: .leading, spacing: 5) {
                         HStack { Text(workout.title).font(.headline); if workout.progressaDetails != nil { Text("PROGRESSA LINKED").font(.caption2.bold()).foregroundStyle(.purple) } }
                         Text(workout.startTime.formatted(date: .abbreviated, time: .shortened)).foregroundStyle(.secondary)
-                        Text("\(Int(workout.effectiveDurationMinutes)) min · \(Int(workout.effectiveEnergyKcal)) kcal").font(.subheadline)
+                        Text("\(Int(workout.effectiveDurationMinutes)) min · \(workout.energyAvailable == false ? "Energy unavailable" : "\(Int(workout.effectiveEnergyKcal)) kcal")").font(.subheadline)
                     }.padding(.vertical, 4)
                 }
                 .task {
-                    if workout.id == model.workouts.last?.id { await model.loadMoreWorkouts() }
+                    if workout.id == model.displayWorkouts.last?.id { await model.loadMoreWorkouts() }
                 }
             }
             if model.isLoadingMoreWorkouts { ProgressView("Loading older workouts…") }
         }
         .overlay {
-            if model.workouts.isEmpty {
+            if model.displayWorkouts.isEmpty {
                 VStack(spacing: 10) {
                     Image(systemName: "figure.run").font(.largeTitle)
                     Text("No workouts").font(.headline)
@@ -48,7 +48,7 @@ struct WorkoutsView: View {
         .navigationTitle("Workout log")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                NavigationLink { MergeLabView() } label: { Label("Merge Lab", systemImage: "square.stack.3d.up") }
+                NavigationLink { MergeLabView() } label: { Label("Combine", systemImage: "square.stack.3d.up") }
             }
         }
         .navigationDestination(for: Workout.self) { WorkoutDetailView(workout: $0) }
@@ -58,121 +58,155 @@ struct WorkoutsView: View {
 
 struct MergeLabView: View {
     @EnvironmentObject private var model: AppModel
-    @State private var selected = Set<String>()
-    @State private var routeCoordinates: [CLLocationCoordinate2D] = []
-    @State private var routeLoading = false
+    @Environment(\.dismiss) private var dismiss
+    @State private var selected: [String] = []
+    @State private var preview: WorkoutMergePreview?
+    @State private var strategy = "concatenate"
+    @State private var busy = false
+    @State private var error: String?
+    @State private var confirming = false
 
-    private var workouts: [Workout] { model.workouts.filter { $0.startTime <= .now } }
-    private var chosen: [Workout] { workouts.filter { selected.contains($0.id) } }
-    private var selectionToken: String { selected.sorted().joined(separator: ",") }
-    private var averageHeartRate: Double { WorkoutFidelity.weightedAverageHeartRate(for: chosen) }
-    private var maxHeartRate: Double { chosen.map(\.maxHeartRate).filter { $0 > 0 }.max() ?? 0 }
-
+    private var workouts: [Workout] { model.displayWorkouts.filter { $0.merge == nil && $0.progressaDetails == nil } }
     var body: some View {
         List {
             Section {
-                Text("Select at least two HealthKit or Progressa workouts. Merge Lab writes one combined workout and keeps every source workout unchanged.")
+                Text("Combine parts of one training inside Quantivita. Original activities stay unchanged in Apple Health and Strava.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
-            Section("Workouts") {
-                ForEach(workouts) { workout in
-                    Button { toggle(workout.id) } label: {
-                        HStack {
-                            Image(systemName: selected.contains(workout.id) ? "checkmark.circle.fill" : "circle")
-                                .foregroundStyle(selected.contains(workout.id) ? QuantivitaTheme.accent : .secondary)
-                            VStack(alignment: .leading) {
+            Section("Select activities") {
+                if preview != nil {
+                    Button("Change selection") { preview = nil; strategy = "concatenate" }
+                }
+                ForEach(preview == nil ? workouts : workouts.filter { selected.contains($0.id) }) { workout in
+                    Button {
+                        if selected.contains(workout.id) { selected.removeAll { $0 == workout.id } }
+                        else { selected.append(workout.id) }
+                        preview = nil; strategy = "concatenate"
+                    } label: {
+                        HStack(alignment: .top) {
+                            Image(systemName: selected.contains(workout.id) ? "checkmark.circle.fill" : "circle").foregroundStyle(.tint)
+                            VStack(alignment: .leading, spacing: 4) {
                                 Text(workout.title).foregroundStyle(.primary)
-                                Text(workout.startTime.formatted(date: .abbreviated, time: .shortened)).font(.caption).foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                            Text("\(Int(workout.effectiveDurationMinutes)) min").foregroundStyle(.secondary)
-                        }
+                                Text(workout.startTime.formatted(date: .abbreviated, time: .shortened)).foregroundStyle(.secondary)
+                                Text("\(Int(workout.durationMinutes)) min · \(workout.sourceName ?? workout.source)")
+                                Text("Ends \((workout.startTime.addingTimeInterval((workout.elapsedDurationMinutes ?? workout.durationMinutes) * 60)).formatted(date: .abbreviated, time: .shortened))")
+                                if selected.first == workout.id { Text("First selected source").foregroundStyle(.tint) }
+                            }.font(.subheadline)
+                        }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 3)
                     }
+                    .buttonStyle(.plain)
+                    .accessibilityAddTraits(selected.contains(workout.id) ? .isSelected : [])
+                }
+            }.disabled(busy)
+            if let preview {
+                Section("Preview") {
+                    LabeledContent("Activities", value: "\(preview.sources.count)")
+                    LabeledContent("Active duration", value: "\(Int(preview.workout.durationMinutes)) min")
+                    if let elapsed = preview.workout.elapsedDurationMinutes { LabeledContent("Elapsed duration", value: "\(Int(elapsed)) min") }
+                    LabeledContent("Distance", value: preview.workout.distanceAvailable == false ? "Unavailable" : "\((preview.workout.distanceMeters / 1000).formatted(.number.precision(.fractionLength(1)))) km")
+                    LabeledContent("Energy", value: preview.workout.energyAvailable == false ? "Unavailable" : "\(Int(preview.workout.energyKcal)) kcal")
+                    if preview.overlapSeconds > 1 { LabeledContent("Overlap", value: "\(Int(preview.overlapSeconds / 60)) min") }
+                    ForEach(preview.warnings, id: \.self) { Text($0).foregroundStyle(.orange) }
+                    if let note = preview.workout.metricsNote { Text(note).font(.footnote).foregroundStyle(.secondary) }
+                }
+                if preview.overlapSeconds > 1 {
+                    Section("Handle overlap") {
+                        Button("Keep measurements from first selected source") { strategy = "duplicate"; Task { await loadPreview() } }
+                        Button("Combine time; leave distance and energy unknown") { strategy = "time_only"; Task { await loadPreview() } }
+                    }.disabled(busy)
                 }
             }
-            if chosen.count >= 2 {
-                Section("Merged preview") {
-                    LabeledContent("Workouts", value: "\(chosen.count)")
-                    LabeledContent("Elapsed", value: "\(Int(elapsedMinutes)) min")
-                    LabeledContent("Moving", value: "\(Int(chosen.reduce(0) { $0 + $1.effectiveDurationMinutes })) min")
-                    LabeledContent("Energy", value: "\(Int(chosen.reduce(0) { $0 + $1.effectiveEnergyKcal })) kcal")
-                    LabeledContent("Distance", value: distanceLabel(chosen.reduce(0) { $0 + $1.distanceMeters }))
-                    if averageHeartRate > 0 { LabeledContent("Avg heart rate", value: "\(Int(averageHeartRate)) bpm") }
-                    if maxHeartRate > 0 { LabeledContent("Max heart rate", value: "\(Int(maxHeartRate)) bpm") }
-                }
-                Section("Route") {
-                    if routeCoordinates.count >= 2 {
-                        RouteMapView(coordinates: routeCoordinates)
-                            .frame(height: 200)
-                            .listRowInsets(EdgeInsets())
-                    } else if routeLoading {
-                        Label("Loading GPS route…", systemImage: "map").font(.footnote).foregroundStyle(.secondary)
-                    } else if chosen.contains(where: { $0.hasRoute }) {
-                        Label("The GPS route couldn’t be read. Allow Quantivita to read Workout Routes in Settings ▸ Health ▸ Data Access & Devices ▸ Quantivita.", systemImage: "mappin.slash")
-                            .font(.footnote).foregroundStyle(.secondary)
-                    } else {
-                        Label("None of the selected workouts has a GPS route (they weren’t recorded with outdoor GPS).", systemImage: "map")
-                            .font(.footnote).foregroundStyle(.secondary)
-                    }
-                }
-                Section {
-                    Label("Heart rate, GPS route and ambient temperature from each workout are carried into the merged Apple Health workout.", systemImage: "checkmark.seal")
-                        .font(.footnote).foregroundStyle(.secondary)
-                }
-            }
+            if let error { Section { Text(error).foregroundStyle(.red) } }
         }
-        .navigationTitle("Merge Lab")
-        .task(id: selectionToken) {
-            guard chosen.count >= 2 else { routeCoordinates = []; routeLoading = false; return }
-            routeLoading = true
-            routeCoordinates = await model.mergedRouteCoordinates(ids: selected)
-            routeLoading = false
-        }
+        .navigationTitle("Combine activities")
         .safeAreaInset(edge: .bottom) {
-            VStack(spacing: 10) {
-                Button("Export to Apple Health") {
-                    Task { _ = await model.exportMergedWorkout(ids: selected) }
-                }
-                .buttonStyle(.borderedProminent).controlSize(.large)
-                Button(model.isUploadingStrava ? "Waiting for Strava…" : (model.stravaConnected ? "Upload directly to Strava" : "Connect and upload to Strava")) {
-                    Task { _ = await model.uploadMergedWorkoutToStrava(ids: selected) }
-                }
-                .buttonStyle(.bordered).controlSize(.large)
+            Button {
+                if preview?.canMerge == true { confirming = true }
+                else { Task { await loadPreview() } }
+            } label: {
+                HStack { if busy { ProgressView() }; Text(preview?.canMerge == true ? "Confirm combination" : "Preview combination") }
+                    .frame(maxWidth: .infinity)
             }
-            .disabled(chosen.count < 2 || model.isUploadingStrava)
-            .padding().frame(maxWidth: .infinity).background(.bar)
+            .buttonStyle(.borderedProminent).controlSize(.large)
+            .disabled(selected.count < 2 || busy || (preview != nil && preview?.canMerge == false))
+            .padding().background(.bar)
         }
+        .confirmationDialog("Combine these activities?", isPresented: $confirming, titleVisibility: .visible) {
+            Button("Combine in Quantivita") {
+                Task {
+                    busy = true; defer { busy = false }
+                    do { try await model.confirmWorkoutMerge(ids: selected, strategy: strategy); dismiss() }
+                    catch { self.error = error.localizedDescription }
+                }
+            }
+        } message: { Text("You can undo this from the combined activity. Source activities remain unchanged.") }
     }
-
-    private var elapsedMinutes: Double {
-        guard let start = chosen.map(\.startTime).min(),
-              let end = chosen.map({ $0.startTime.addingTimeInterval($0.effectiveDurationMinutes * 60) }).max() else { return 0 }
-        return end.timeIntervalSince(start) / 60
-    }
-
-    private func toggle(_ id: String) {
-        if !selected.insert(id).inserted { selected.remove(id) }
-    }
-
-    private func distanceLabel(_ meters: Double) -> String {
-        meters > 0 ? "\((meters / 1000).formatted(.number.precision(.fractionLength(1)))) km" : "—"
+    private func loadPreview() async {
+        busy = true; error = nil; preview = nil
+        defer { busy = false }
+        do { preview = try await model.previewWorkoutMerge(ids: selected, strategy: strategy) }
+        catch { self.error = error.localizedDescription }
     }
 }
 
 struct WorkoutDetailView: View {
+    @EnvironmentObject private var model: AppModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var undoing = false
+    @State private var undoConfirmation = false
+    @State private var mergeError: String?
     let workout: Workout
 
     var body: some View {
         ScrollView {
             VStack(spacing: 14) {
                 Panel {
-                    Image(systemName: workout.progressaDetails != nil ? "dumbbell.fill" : "figure.run").font(.largeTitle).foregroundStyle(.purple)
-                    Text(workout.title).font(.title.bold())
-                    Text(workout.startTime.formatted(date: .long, time: .shortened)).foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 10) {
+                        Image(systemName: workout.progressaDetails != nil ? "dumbbell.fill" : workout.typeCode == 3 ? "figure.indoor.cycle" : "figure.run").font(.largeTitle).foregroundStyle(.tint)
+                        Text(workout.title).font(.title.bold())
+                        Text(workout.startTime.formatted(date: .long, time: .shortened)).foregroundStyle(.secondary)
+                    }
                 }
                 HStack(spacing: 12) {
                     MetricPanel(title: "Duration", value: "\(Int(workout.effectiveDurationMinutes)) min", color: .purple)
-                    MetricPanel(title: "Energy", value: "\(Int(workout.effectiveEnergyKcal)) kcal", color: .orange)
+                    MetricPanel(title: "Energy", value: workout.energyAvailable == false ? "—" : "\(Int(workout.effectiveEnergyKcal)) kcal", color: .orange)
+                }
+                if workout.typeCode == 3 || workout.merge != nil {
+                    Panel {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Measurements").font(.headline)
+                            LabeledContent("Distance", value: workout.distanceAvailable == false ? "Unavailable" : "\((workout.distanceMeters / 1000).formatted(.number.precision(.fractionLength(1)))) km")
+                            LabeledContent("Average heart rate", value: workout.averageHeartRate > 0 ? "\(Int(workout.averageHeartRate)) bpm" : "Unavailable")
+                            LabeledContent("Maximum heart rate", value: workout.maxHeartRate > 0 ? "\(Int(workout.maxHeartRate)) bpm" : "Unavailable")
+                            LabeledContent("Average power", value: measurement(workout.avgPowerWatts, unit: "W"))
+                            LabeledContent("Maximum power", value: measurement(workout.maxPowerWatts, unit: "W"))
+                            LabeledContent("Normalized power", value: measurement(workout.normalizedPowerWatts, unit: "W"))
+                            LabeledContent("Average cadence", value: measurement(workout.avgCadenceRpm, unit: "rpm"))
+                            LabeledContent("Maximum cadence", value: measurement(workout.maxCadenceRpm, unit: "rpm"))
+                            if let elapsed = workout.elapsedDurationMinutes { LabeledContent("Elapsed duration", value: "\(Int(elapsed)) min") }
+                            if let note = workout.metricsNote { Text(note).font(.footnote).foregroundStyle(.secondary) }
+                        }
+                    }
+                }
+                Panel {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Sources").font(.headline)
+                        if let sources = workout.merge?.sources ?? workout.duplicateSources {
+                            ForEach(sources) { source in
+                                VStack(alignment: .leading) {
+                                    Text(source.title ?? "Workout").font(.subheadline.bold())
+                                    Text("\(source.sourceName ?? source.provider ?? "Unknown") · \(source.importedVia ?? "Unknown channel")").font(.caption)
+                                    if let start = source.startTime { Text(start).font(.caption).foregroundStyle(.secondary) }
+                                }
+                            }
+                        } else { Text("\(workout.sourceName ?? workout.source) · \(workout.importedVia ?? workout.source)") }
+                        if let merge = workout.merge {
+                            Text("Combined \(merge.createdAt)").font(.caption).foregroundStyle(.secondary)
+                            ForEach(merge.warnings, id: \.self) { Text($0).font(.footnote).foregroundStyle(.orange) }
+                            Button(undoing ? "Undoing…" : "Undo combination") { undoConfirmation = true }.disabled(undoing)
+                        }
+                        if let mergeError { Text(mergeError).foregroundStyle(.red) }
+                    }
                 }
                 if let details = workout.progressaDetails {
                     Panel {
@@ -217,6 +251,10 @@ struct WorkoutDetailView: View {
         if let side = set.side, !side.isEmpty { parts.append(side.capitalized) }
         return parts.isEmpty ? "Recorded" : parts.joined(separator: " · ")
     }
+    private func measurement(_ value: Double?, unit: String) -> String {
+        value.map { "\(Int($0)) \(unit)" } ?? "Unavailable"
+    }
+
 }
 
 /// Non-interactive map that draws the combined GPS route as a polyline.

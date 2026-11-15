@@ -69,6 +69,20 @@ struct Workout: Codable, Identifiable, Hashable {
     var healthActivityLink: HealthActivityLink?
     var progressaDetails: ProgressaDetails?
     var telemetry: WorkoutTelemetry?
+    var avgPowerWatts: Double?
+    var maxPowerWatts: Double?
+    var normalizedPowerWatts: Double?
+    var avgCadenceRpm: Double?
+    var maxCadenceRpm: Double?
+    var elapsedDurationMinutes: Double?
+    var provider: String?
+    var importedVia: String?
+    var metricsNote: String?
+    var merge: WorkoutMerge?
+    var duplicateSources: [WorkoutSource]?
+    var distanceAvailable: Bool?
+    var energyAvailable: Bool?
+
 
     var isProgressa: Bool { source == "progressa" }
     var effectiveDurationMinutes: Double {
@@ -85,6 +99,7 @@ struct Workout: Codable, Identifiable, Hashable {
         case totalEnergyKcal, distanceMeters, elevationGainMeters, averageHeartRate
         case maxHeartRate, typeCode, hasRoute, sourceName, sourceBundleIdentifier
         case progressaWorkoutTitle, healthActivityLink, progressaDetails, telemetry
+        case avgPowerWatts, maxPowerWatts, normalizedPowerWatts, avgCadenceRpm, maxCadenceRpm, elapsedDurationMinutes, provider, importedVia, metricsNote, merge, duplicateSources, distanceAvailable, energyAvailable
     }
 
     init(
@@ -140,12 +155,26 @@ struct Workout: Codable, Identifiable, Hashable {
         healthActivityLink = try values.decodeIfPresent(HealthActivityLink.self, forKey: .healthActivityLink)
         progressaDetails = try values.decodeIfPresent(ProgressaDetails.self, forKey: .progressaDetails)
         telemetry = try values.decodeIfPresent(WorkoutTelemetry.self, forKey: .telemetry)
+        avgPowerWatts = try values.decodeIfPresent(Double.self, forKey: .avgPowerWatts)
+        maxPowerWatts = try values.decodeIfPresent(Double.self, forKey: .maxPowerWatts)
+        normalizedPowerWatts = try values.decodeIfPresent(Double.self, forKey: .normalizedPowerWatts)
+        avgCadenceRpm = try values.decodeIfPresent(Double.self, forKey: .avgCadenceRpm)
+        maxCadenceRpm = try values.decodeIfPresent(Double.self, forKey: .maxCadenceRpm)
+        elapsedDurationMinutes = try values.decodeIfPresent(Double.self, forKey: .elapsedDurationMinutes)
+        provider = try values.decodeIfPresent(String.self, forKey: .provider)
+        importedVia = try values.decodeIfPresent(String.self, forKey: .importedVia)
+        metricsNote = try values.decodeIfPresent(String.self, forKey: .metricsNote)
+        merge = try values.decodeIfPresent(WorkoutMerge.self, forKey: .merge)
+        duplicateSources = try values.decodeIfPresent([WorkoutSource].self, forKey: .duplicateSources)
+        distanceAvailable = try values.decodeIfPresent(Bool.self, forKey: .distanceAvailable)
+        energyAvailable = try values.decodeIfPresent(Bool.self, forKey: .energyAvailable)
+
     }
 }
 
 /// Optional measured data; absent permissions/data remain absent rather than zero.
 struct WorkoutTelemetry: Codable, Hashable {
-    struct HeartRate: Codable, Hashable { let time: String; let bpm: Double }
+    struct HeartRate: Codable, Hashable { let time: String; let bpm: Double; var endTime: String? }
     struct Speed: Codable, Hashable { let time: String; let metersPerSecond: Double }
     struct Event: Codable, Hashable {
         let type: String
@@ -177,6 +206,10 @@ struct WorkoutTelemetry: Codable, Hashable {
     var appleWorkoutPlanStatus: String?
     var appleWorkoutActivities: [Activity]?
     var workoutEndTime: String?
+    struct CyclingSample: Codable, Hashable { let time: String; let endTime: String; let value: Double }
+    var normalizedPowerWatts: Double?
+    var powerSamples: [CyclingSample]?
+    var cadenceSamples: [CyclingSample]?
 }
 
 struct AppleWorkoutPlan: Codable, Hashable {
@@ -288,4 +321,41 @@ struct StrengthIndex: Decodable {
     }
     let loggedDates: [String]
     let exercises: [Exercise]
+}
+
+struct WorkoutSource: Codable, Hashable, Identifiable {
+    let id: String
+    let title: String?
+    let startTime: String?
+    let endTime: String?
+    let durationMinutes: Double?
+    let sourceName: String?
+    let provider: String?
+    let importedVia: String?
+    let externalWorkoutId: String?
+}
+struct WorkoutMerge: Codable, Hashable {
+    let id: String
+    let sourceWorkoutIds: [String]
+    let strategy: String
+    let createdAt: String
+    let createdBy: String
+    let sources: [WorkoutSource]
+    let warnings: [String]
+}
+struct WorkoutMergeState: Codable {
+    var workouts: [Workout] = []
+    var hiddenWorkoutIds: [String] = []
+    func applying(to originals: [Workout]) -> [Workout] {
+        let hidden = Set(hiddenWorkoutIds + workouts.map(\.id))
+        return (originals.filter { !hidden.contains($0.id) } + workouts).sorted { $0.startTime > $1.startTime }
+    }
+}
+struct WorkoutMergePreview: Decodable {
+    let workout: Workout
+    let sources: [WorkoutSource]
+    let overlapSeconds: Double
+    let warnings: [String]
+    let canMerge: Bool
+    let strategy: String
 }

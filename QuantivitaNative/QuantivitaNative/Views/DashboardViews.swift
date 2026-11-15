@@ -40,12 +40,12 @@ struct TodayView: View {
                     MetricPanel(title: "Steps", value: model.summary.steps.formatted(.number.precision(.fractionLength(0))), color: .cyan)
                     MetricPanel(title: "Active", value: "\(Int(model.summary.activeEnergyKcal)) kcal", color: .orange)
                 } }
-                if enabled.contains(.workout), let latest = model.workouts.first {
+                if enabled.contains(.workout), let latest = model.displayWorkouts.first {
                     NavigationLink(value: latest) {
                         Panel {
                             Text("Latest workout").font(.headline)
                             Text(latest.title).font(.title3.bold())
-                            Text("\(Int(latest.effectiveDurationMinutes)) min · \(Int(latest.effectiveEnergyKcal)) kcal")
+                            Text("\(Int(latest.effectiveDurationMinutes)) min · \(latest.energyAvailable == false ? "Energy unavailable" : "\(Int(latest.effectiveEnergyKcal)) kcal")")
                                 .foregroundStyle(.secondary)
                         }
                     }.buttonStyle(.plain)

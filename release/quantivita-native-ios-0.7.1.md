@@ -9,4 +9,9 @@
 - Hide unavailable metrics while retaining measured zero power/cadence values.
 - Collapsible source details and working undo confirmation for combined activities.
 
+## MCP / homeserver 0.4.1
+
+- Pin public DNS resolvers for the Progressa and Quantivita containers to prevent stale host VPN DNS from blocking login.
+- Verify Supabase authentication and the Quantivita-to-Progressa upstream after deployment.
+
 Validation: 14 Progressa authentication/link tests and 3 Quantivita UI tests pass locally. CI validates native workout/authentication tests, all Quantivita unit tests, server tests, and release manifests. Physical-device reconnection requires installing the Progressa update and approving the connection once.

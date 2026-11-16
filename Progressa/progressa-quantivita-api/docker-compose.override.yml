@@ -1,0 +1,4 @@
+services:
+  progressa-api:
+    # Public Supabase authentication must not inherit a stale VPN resolver.
+    dns: [1.1.1.1, 8.8.8.8]

@@ -42,7 +42,7 @@ struct ProgressaRootView: View {
         }
         .sheet(item: $model.pendingConnect) { _ in QuantivitaConsentView() }
         .alert("Progressa", isPresented: Binding(
-            get: { model.message != nil }, set: { if !$0 { model.message = nil } }
+            get: { model.message != nil && model.pendingConnect == nil }, set: { if !$0 { model.message = nil } }
         )) { Button("OK") { model.message = nil } } message: { Text(model.message ?? "") }
     }
 }
@@ -1110,14 +1110,32 @@ private func parsedInt(_ value: String) -> Int? {
 private struct QuantivitaConsentView: View {
     @EnvironmentObject private var model: ProgressaModel
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 20) {
-                Image(systemName: "link.circle.fill").font(.system(size: 62)).foregroundStyle(.purple)
-                Text("Connect Quantivita?").font(.title.bold())
-                Text("Quantivita may read your Progressa workouts, exercises, sets, reps, weight and volume.").multilineTextAlignment(.center)
-                Button("Allow") { Task { await model.finishQuantivitaConnect(approved: true) } }.buttonStyle(.borderedProminent)
-                Button("Cancel", role: .cancel) { Task { await model.finishQuantivitaConnect(approved: false) } }
-            }.padding().navigationTitle("App connection")
-        }.interactiveDismissDisabled()
+        Group {
+            if model.session == nil {
+                ProgressaLoginView()
+                    .safeAreaInset(edge: .bottom) {
+                        Button("Cancel connection", role: .cancel) {
+                            Task { await model.finishQuantivitaConnect(approved: false) }
+                        }.disabled(model.isLoading).padding()
+                    }
+            } else {
+                NavigationStack {
+                    VStack(spacing: 20) {
+                        Image(systemName: "link.circle.fill").font(.system(size: 62)).foregroundStyle(.purple)
+                        Text("Connect Quantivita?").font(.title.bold())
+                        Text("Quantivita may read your Progressa workouts, exercises, sets, reps, weight and volume.").multilineTextAlignment(.center)
+                        if model.isLoading { ProgressView("Connecting…") }
+                        Button("Allow") { Task { await model.finishQuantivitaConnect(approved: true) } }
+                            .buttonStyle(.borderedProminent).disabled(model.isLoading)
+                        Button("Cancel", role: .cancel) { Task { await model.finishQuantivitaConnect(approved: false) } }
+                            .disabled(model.isLoading)
+                    }.padding().navigationTitle("App connection")
+                }
+            }
+        }
+        .interactiveDismissDisabled()
+        .alert("Progressa", isPresented: Binding(
+            get: { model.message != nil }, set: { if !$0 { model.message = nil } }
+        )) { Button("OK") { model.message = nil } } message: { Text(model.message ?? "") }
     }
 }

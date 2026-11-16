@@ -33,6 +33,7 @@ final class ProgressaModel: ObservableObject {
     @Published var isUploadingAvatar = false
     @Published var isRecoveringPassword = false
 
+    private let openURL: (URL) -> Void
     private let client: ProgressaClient
     private let workoutService: ProgressaWorkoutServing
     private let workoutCache: WorkoutCache
@@ -51,8 +52,10 @@ final class ProgressaModel: ObservableObject {
         statsMeasurementsService: any ProgressaStatsMeasurementsServing = StatsMeasurementsService(),
         routineService: any ProgressaRoutineServing = ProgressaRoutineService(),
         healthKitService: ProgressaHealthKitService = ProgressaHealthKitService(),
-        healthMetadataService: ProgressaHealthMetadataService = ProgressaHealthMetadataService()
+        healthMetadataService: ProgressaHealthMetadataService = ProgressaHealthMetadataService(),
+        openURL: @escaping (URL) -> Void = { UIApplication.shared.open($0) }
     ) {
+        self.openURL = openURL
         self.client = client
         self.workoutService = workoutService ?? client
         self.workoutCache = workoutCache
@@ -809,17 +812,24 @@ final class ProgressaModel: ObservableObject {
     }
 
     func finishQuantivitaConnect(approved: Bool) async {
-        guard let connect = pendingConnect else { return }
+        guard let connect = pendingConnect, !isLoading else { return }
         guard approved else {
             returnToQuantivita(connect, query: ["error": "access_denied", "state": connect.state])
             pendingConnect = nil
             return
         }
-        guard let session else { message = "Sign in to Progressa first."; return }
+        guard session != nil else { message = "Sign in to Progressa first."; return }
         isLoading = true
         defer { isLoading = false }
+        guard let session = await validWorkoutSession() else { return }
         do {
-            let code = try await client.createQuantivitaCode(connect, session: session)
+            let code: String
+            do {
+                code = try await client.createQuantivitaCode(connect, session: session)
+            } catch ProgressaClientError.server(401, _) {
+                guard let refreshed = await validWorkoutSession(forceRefresh: true) else { return }
+                code = try await client.createQuantivitaCode(connect, session: refreshed)
+            }
             returnToQuantivita(connect, query: ["code": code, "state": connect.state])
             pendingConnect = nil
         } catch { message = "Connection failed: \(error.localizedDescription)" }
@@ -828,7 +838,7 @@ final class ProgressaModel: ObservableObject {
     private func returnToQuantivita(_ request: QuantivitaConnectRequest, query: [String: String]) {
         var components = URLComponents(url: request.redirectURI, resolvingAgainstBaseURL: false)!
         components.queryItems = query.map { URLQueryItem(name: $0.key, value: $0.value) }
-        if let url = components.url { UIApplication.shared.open(url) }
+        if let url = components.url { openURL(url) }
     }
 
     private func loadCachedWorkouts(userId: String) {
@@ -859,9 +869,9 @@ final class ProgressaModel: ObservableObject {
         try await client.setExerciseBase(kg, id: id, session: session)
     }
 
-    private func validWorkoutSession() async -> ProgressaSession? {
+    private func validWorkoutSession(forceRefresh: Bool = false) async -> ProgressaSession? {
         guard let current = session else { return nil }
-        guard current.expiresAt.timeIntervalSinceNow < 300 else { return current }
+        guard forceRefresh || current.expiresAt.timeIntervalSinceNow < 300 else { return current }
         let task: Task<ProgressaSession, Error>
         if let active = sessionRefreshTask {
             task = active

@@ -26,7 +26,7 @@ struct WorkoutsView: View {
                     VStack(alignment: .leading, spacing: 5) {
                         HStack { Text(workout.title).font(.headline); if workout.progressaDetails != nil { Text("PROGRESSA LINKED").font(.caption2.bold()).foregroundStyle(.purple) } }
                         Text(workout.startTime.formatted(date: .abbreviated, time: .shortened)).foregroundStyle(.secondary)
-                        Text("\(Int(workout.effectiveDurationMinutes)) min · \(workout.energyAvailable == false ? "Energy unavailable" : "\(Int(workout.effectiveEnergyKcal)) kcal")").font(.subheadline)
+                        Text(workout.energyAvailable == false ? "\(Int(workout.effectiveDurationMinutes)) min" : "\(Int(workout.effectiveDurationMinutes)) min · \(Int(workout.effectiveEnergyKcal)) kcal").font(.subheadline)
                     }.padding(.vertical, 4)
                 }
                 .task {
@@ -103,8 +103,10 @@ struct MergeLabView: View {
                     LabeledContent("Activities", value: "\(preview.sources.count)")
                     LabeledContent("Active duration", value: "\(Int(preview.workout.durationMinutes)) min")
                     if let elapsed = preview.workout.elapsedDurationMinutes { LabeledContent("Elapsed duration", value: "\(Int(elapsed)) min") }
-                    LabeledContent("Distance", value: preview.workout.distanceAvailable == false ? "Unavailable" : "\((preview.workout.distanceMeters / 1000).formatted(.number.precision(.fractionLength(1)))) km")
-                    LabeledContent("Energy", value: preview.workout.energyAvailable == false ? "Unavailable" : "\(Int(preview.workout.energyKcal)) kcal")
+                    if preview.workout.distanceAvailable != false, preview.workout.distanceMeters > 0 {
+                        LabeledContent("Distance", value: "\((preview.workout.distanceMeters / 1000).formatted(.number.precision(.fractionLength(1)))) km")
+                    }
+                    if preview.workout.energyAvailable != false { LabeledContent("Energy", value: "\(Int(preview.workout.energyKcal)) kcal") }
                     if preview.overlapSeconds > 1 { LabeledContent("Overlap", value: "\(Int(preview.overlapSeconds / 60)) min") }
                     ForEach(preview.warnings, id: \.self) { Text($0).foregroundStyle(.orange) }
                     if let note = preview.workout.metricsNote { Text(note).font(.footnote).foregroundStyle(.secondary) }
@@ -152,6 +154,7 @@ struct MergeLabView: View {
 struct WorkoutDetailView: View {
     @EnvironmentObject private var model: AppModel
     @Environment(\.dismiss) private var dismiss
+    @State private var routeCoordinates: [CLLocationCoordinate2D] = []
     @State private var undoing = false
     @State private var undoConfirmation = false
     @State private var mergeError: String?
@@ -160,46 +163,71 @@ struct WorkoutDetailView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 14) {
-                Panel {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Image(systemName: workout.progressaDetails != nil ? "dumbbell.fill" : workout.typeCode == 3 ? "figure.indoor.cycle" : "figure.run").font(.largeTitle).foregroundStyle(.tint)
-                        Text(workout.title).font(.title.bold())
-                        Text(workout.startTime.formatted(date: .long, time: .shortened)).foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Label(workout.progressaDetails != nil ? "Strength training" : workout.typeCode == 3 ? "Cycling" : "Workout",
+                              systemImage: workout.progressaDetails != nil ? "dumbbell.fill" : workout.typeCode == 3 ? "figure.indoor.cycle" : "figure.run")
+                            .font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+                        Text(workout.title).font(.title2.bold()).fixedSize(horizontal: false, vertical: true)
+                        Text(workout.startTime.formatted(date: .abbreviated, time: .shortened))
+                            .font(.subheadline).foregroundStyle(.secondary)
+                    }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 8)
+
+                    Text(workout.distanceAvailable != false && workout.distanceMeters > 0
+                         ? "\((workout.distanceMeters / 1000).formatted(.number.precision(.fractionLength(2)))) km"
+                         : "\(Int(workout.effectiveDurationMinutes)) min")
+                        .font(.system(size: headlineSize, weight: .bold, design: .rounded)).monospacedDigit()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    if routeCoordinates.count >= 2 {
+                        RouteMapView(coordinates: routeCoordinates)
+                            .frame(height: 200).clipShape(RoundedRectangle(cornerRadius: 16))
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel("Recorded workout route")
+                            .accessibilityIdentifier("workoutRoute")
                     }
-                }
-                HStack(spacing: 12) {
-                    MetricPanel(title: "Duration", value: "\(Int(workout.effectiveDurationMinutes)) min", color: .purple)
-                    MetricPanel(title: "Energy", value: workout.energyAvailable == false ? "—" : "\(Int(workout.effectiveEnergyKcal)) kcal", color: .orange)
-                }
-                if workout.typeCode == 3 || workout.merge != nil {
-                    Panel {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("Measurements").font(.headline)
-                            LabeledContent("Distance", value: workout.distanceAvailable == false ? "Unavailable" : "\((workout.distanceMeters / 1000).formatted(.number.precision(.fractionLength(1)))) km")
-                            LabeledContent("Average heart rate", value: workout.averageHeartRate > 0 ? "\(Int(workout.averageHeartRate)) bpm" : "Unavailable")
-                            LabeledContent("Maximum heart rate", value: workout.maxHeartRate > 0 ? "\(Int(workout.maxHeartRate)) bpm" : "Unavailable")
-                            LabeledContent("Average power", value: measurement(workout.avgPowerWatts, unit: "W"))
-                            LabeledContent("Maximum power", value: measurement(workout.maxPowerWatts, unit: "W"))
-                            LabeledContent("Normalized power", value: measurement(workout.normalizedPowerWatts, unit: "W"))
-                            LabeledContent("Average cadence", value: measurement(workout.avgCadenceRpm, unit: "rpm"))
-                            LabeledContent("Maximum cadence", value: measurement(workout.maxCadenceRpm, unit: "rpm"))
-                            if let elapsed = workout.elapsedDurationMinutes { LabeledContent("Elapsed duration", value: "\(Int(elapsed)) min") }
-                            if let note = workout.metricsNote { Text(note).font(.footnote).foregroundStyle(.secondary) }
+                    Divider()
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: metricWidth), alignment: .leading)], spacing: 12) {
+                        metric("Duration", value: workout.effectiveDurationMinutes, unit: "min", symbol: "clock")
+                        if workout.energyAvailable != false {
+                            metric("Energy", value: workout.effectiveEnergyKcal, unit: "kcal", symbol: "flame")
+                        }
+                        if workout.elevationGainMeters > 0 {
+                            metric("Elevation gain", value: workout.elevationGainMeters, unit: "m", symbol: "mountain.2")
+                        }
+                        if workout.averageHeartRate > 0 {
+                            metric("Average heart rate", value: workout.averageHeartRate, unit: "bpm", symbol: "heart")
+                        }
+                        if workout.maxHeartRate > 0 {
+                            metric("Maximum heart rate", value: workout.maxHeartRate, unit: "bpm", symbol: "heart.fill")
+                        }
+                        if let value = workout.avgPowerWatts { metric("Average power", value: value, unit: "W", symbol: "bolt") }
+                        if let value = workout.maxPowerWatts { metric("Maximum power", value: value, unit: "W", symbol: "bolt.fill") }
+                        if let value = workout.normalizedPowerWatts { metric("Normalized power", value: value, unit: "W", symbol: "waveform.path") }
+                        if let value = workout.avgCadenceRpm { metric("Average cadence", value: value, unit: "rpm", symbol: "arrow.triangle.2.circlepath") }
+                        if let value = workout.maxCadenceRpm { metric("Maximum cadence", value: value, unit: "rpm", symbol: "arrow.triangle.2.circlepath") }
+                        if let elapsed = workout.elapsedDurationMinutes, elapsed > workout.effectiveDurationMinutes + 1 {
+                            metric("Elapsed duration", value: elapsed, unit: "min", symbol: "stopwatch")
                         }
                     }
                 }
+                .padding(20)
+                .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 28))
+                if let note = workout.metricsNote, !note.isEmpty {
+                    Text(note).font(.footnote).foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .leading)
+                }
                 Panel {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Sources").font(.headline)
-                        if let sources = workout.merge?.sources ?? workout.duplicateSources {
-                            ForEach(sources) { source in
-                                VStack(alignment: .leading) {
-                                    Text(source.title ?? "Workout").font(.subheadline.bold())
-                                    Text("\(source.sourceName ?? source.provider ?? "Unknown") · \(source.importedVia ?? "Unknown channel")").font(.caption)
-                                    if let start = source.startTime { Text(start).font(.caption).foregroundStyle(.secondary) }
+                        DisclosureGroup("Sources") {
+                            if let sources = workout.merge?.sources ?? workout.duplicateSources {
+                                ForEach(sources) { source in
+                                    VStack(alignment: .leading) {
+                                        Text(source.title ?? "Workout").font(.subheadline.bold())
+                                        Text([source.sourceName ?? source.provider, source.importedVia].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")).font(.caption)
+                                        if let start = source.startTime { Text(start).font(.caption).foregroundStyle(.secondary) }
+                                    }
                                 }
-                            }
-                        } else { Text("\(workout.sourceName ?? workout.source) · \(workout.importedVia ?? workout.source)") }
+                            } else { Text("\(workout.sourceName ?? workout.source) · \(workout.importedVia ?? workout.source)") }
+                        }
                         if let merge = workout.merge {
                             Text("Combined \(merge.createdAt)").font(.caption).foregroundStyle(.secondary)
                             ForEach(merge.warnings, id: \.self) { Text($0).font(.footnote).foregroundStyle(.orange) }
@@ -240,6 +268,20 @@ struct WorkoutDetailView: View {
                 }
             }.padding()
         }.background(QuantivitaTheme.background).navigationBarTitleDisplayMode(.inline)
+        .confirmationDialog("Undo this combination?", isPresented: $undoConfirmation, titleVisibility: .visible) {
+            Button("Undo combination") {
+                guard let merge = workout.merge else { return }
+                Task {
+                    undoing = true
+                    defer { undoing = false }
+                    do { try await model.undoWorkoutMerge(id: merge.id); dismiss() }
+                    catch { mergeError = error.localizedDescription }
+                }
+            }
+        } message: { Text("The original activities will appear separately in your log again.") }
+        .task(id: workout.id) {
+            routeCoordinates = await model.mergedRouteCoordinates(ids: Set(workout.merge?.sourceWorkoutIds ?? [workout.id]))
+        }
     }
 
     private func setLabel(_ set: ProgressaSet) -> String {
@@ -251,8 +293,23 @@ struct WorkoutDetailView: View {
         if let side = set.side, !side.isEmpty { parts.append(side.capitalized) }
         return parts.isEmpty ? "Recorded" : parts.joined(separator: " · ")
     }
-    private func measurement(_ value: Double?, unit: String) -> String {
-        value.map { "\(Int($0)) \(unit)" } ?? "Unavailable"
+    @ScaledMetric(relativeTo: .largeTitle) private var headlineSize: CGFloat = 44
+    @ScaledMetric(relativeTo: .body) private var metricWidth: CGFloat = 130
+
+    private func metric(_ title: String, value: Double, unit: String, symbol: String, decimals: Int = 0) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label(title, systemImage: symbol)
+                .font(.subheadline).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Text("\(value.formatted(.number.precision(.fractionLength(decimals)))) \(unit)")
+                .font(.title2.weight(.semibold)).monospacedDigit()
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .padding(.vertical, 8)
+        .accessibilityElement(children: .ignore)
+        .accessibilityAddTraits(.isStaticText)
+        .accessibilityLabel("\(title), \(value.formatted(.number.precision(.fractionLength(decimals)))) \(unit)")
     }
 
 }

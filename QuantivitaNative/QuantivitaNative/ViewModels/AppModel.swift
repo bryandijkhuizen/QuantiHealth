@@ -42,7 +42,10 @@ final class AppModel: ObservableObject {
             first.avgPowerWatts = 185; first.maxPowerWatts = 360
             first.avgCadenceRpm = 82; first.maxCadenceRpm = 105
             first.importedVia = "healthkit"
-            let second = Workout(id: "cycling-b", title: "Indoor Cycling · Part 2", startTime: start.addingTimeInterval(1800), durationMinutes: 20, energyKcal: 200, distanceMeters: 8500, typeCode: 3, sourceName: "Strava")
+            var second = Workout(id: "cycling-b", title: "Indoor Cycling · Part 2", startTime: start.addingTimeInterval(1800), durationMinutes: 20, energyKcal: 200, distanceMeters: 8500, typeCode: 3, sourceName: "Strava")
+            second.energyAvailable = false
+            second.distanceAvailable = false
+            second.avgPowerWatts = 0
             workouts = [second, first]
             stage = .dashboard
             return
@@ -404,7 +407,17 @@ final class AppModel: ObservableObject {
     }
 
     func mergedRouteCoordinates(ids: Set<String>) async -> [CLLocationCoordinate2D] {
-        await health.routeCoordinates(for: workouts.filter { ids.contains($0.id) })
+#if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-uiTestingRoute"), ids.contains("cycling-a") {
+            return [
+                CLLocationCoordinate2D(latitude: 52.09, longitude: 5.11),
+                CLLocationCoordinate2D(latitude: 52.095, longitude: 5.12),
+                CLLocationCoordinate2D(latitude: 52.10, longitude: 5.115),
+                CLLocationCoordinate2D(latitude: 52.09, longitude: 5.11),
+            ]
+        }
+#endif
+        return await health.routeCoordinates(for: workouts.filter { ids.contains($0.id) })
     }
 
     /// Combined GPS track with cumulative distance, for the Strava TCX upload.

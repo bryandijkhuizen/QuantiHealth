@@ -125,6 +125,101 @@ final class AuthProfileTests: XCTestCase {
         XCTAssertNil(model.message)
     }
 
+    @MainActor
+    func testQuantivitaConnectRefreshesExpiredSessionBeforeCreatingCode() async throws {
+        try await verifyQuantivitaConnection(expired: true)
+    }
+
+    @MainActor
+    func testQuantivitaConnectRetriesServerRejectedTokenWithRefreshedSession() async throws {
+        try await verifyQuantivitaConnection(expired: false)
+    }
+
+    @MainActor
+    private func verifyQuantivitaConnection(expired: Bool) async throws {
+        var paths: [String] = []
+        var codeRequests = 0
+        ProfileURLProtocol.handler = { request in
+            paths.append(request.url!.path)
+            if request.url?.path == "/auth/v1/token" {
+                let body = try JSONSerialization.jsonObject(with: requestBody(request)) as! [String: Any]
+                XCTAssertEqual(body["refresh_token"] as? String, "refresh")
+                return (200, Data(#"{"access_token":"new-access","refresh_token":"new-refresh","expires_in":3600,"user":{"id":"user-1"}}"#.utf8))
+            }
+            XCTAssertEqual(request.url?.path, "/api/quantivita/mobile-code")
+            codeRequests += 1
+            if !expired && codeRequests == 1 {
+                XCTAssertEqual(request.value(forHTTPHeaderField: "authorization"), "Bearer access")
+                return (401, Data(#"{"error":"Invalid or expired access token"}"#.utf8))
+            }
+            XCTAssertEqual(request.value(forHTTPHeaderField: "authorization"), "Bearer new-access")
+            let body = try JSONSerialization.jsonObject(with: requestBody(request)) as! [String: Any]
+            XCTAssertEqual(body["refreshToken"] as? String, "new-refresh")
+            return (200, Data(#"{"code":"connection-code"}"#.utf8))
+        }
+        let stored = InMemorySessionStore(value: nil)
+        var callback: URL?
+        let model = ProgressaModel(client: client, sessions: stored, openURL: { callback = $0 })
+        model.session = ProgressaSession(accessToken: "access", refreshToken: "refresh", userId: "user-1",
+                                        expiresAt: expired ? .distantPast : .distantFuture)
+        model.handle(url: connectURL)
+        await model.finishQuantivitaConnect(approved: true)
+        XCTAssertEqual(paths, expired ? ["/auth/v1/token", "/api/quantivita/mobile-code"]
+                       : ["/api/quantivita/mobile-code", "/auth/v1/token", "/api/quantivita/mobile-code"])
+        XCTAssertEqual(stored.value?.accessToken, "new-access")
+        XCTAssertEqual(stored.value?.refreshToken, "new-refresh")
+        let callbackURL = try XCTUnwrap(callback)
+        XCTAssertEqual(callbackURL.scheme, "quantivita")
+        let items = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false)?.queryItems
+        XCTAssertEqual(items?.first(where: { $0.name == "code" })?.value, "connection-code")
+        XCTAssertEqual(items?.first(where: { $0.name == "state" })?.value, "connection-state")
+        XCTAssertNil(model.pendingConnect)
+        XCTAssertNil(model.message)
+        XCTAssertFalse(model.isLoading)
+    }
+
+    @MainActor
+    func testQuantivitaConnectPreservesRequestWhenRefreshIsRejected() async {
+        var requests = 0
+        ProfileURLProtocol.handler = { request in
+            requests += 1
+            XCTAssertEqual(request.url?.path, "/auth/v1/token")
+            return (400, Data(#"{"error":"Invalid refresh token"}"#.utf8))
+        }
+        let model = ProgressaModel(client: client, sessions: InMemorySessionStore(value: nil),
+                                  openURL: { _ in XCTFail("Must not return a connection code") })
+        model.session = ProgressaSession(accessToken: "access", refreshToken: "refresh", userId: "user-1", expiresAt: .distantPast)
+        model.handle(url: connectURL)
+        await model.finishQuantivitaConnect(approved: true)
+        XCTAssertEqual(requests, 1)
+        XCTAssertNil(model.session)
+        XCTAssertNotNil(model.pendingConnect)
+        XCTAssertEqual(model.message, "Your session expired. Sign in again.")
+        XCTAssertFalse(model.isLoading)
+    }
+
+    @MainActor
+    func testQuantivitaConnectDoesNotRetryNonAuthenticationFailures() async {
+        var requests = 0
+        ProfileURLProtocol.handler = { _ in
+            requests += 1
+            return (503, Data(#"{"error":"Service unavailable"}"#.utf8))
+        }
+        let model = ProgressaModel(client: client, sessions: InMemorySessionStore(value: session),
+                                  openURL: { _ in XCTFail("Must not return a connection code") })
+        model.session = session
+        model.handle(url: connectURL)
+        await model.finishQuantivitaConnect(approved: true)
+        XCTAssertEqual(requests, 1)
+        XCTAssertNotNil(model.session)
+        XCTAssertNotNil(model.pendingConnect)
+        XCTAssertEqual(model.message, "Connection failed: Service unavailable")
+    }
+
+    private var connectURL: URL {
+        URL(string: "progressa://quantivita-connect?redirect_uri=quantivita%3A%2F%2Fquantivita.app%2Fprogressa-auth&state=connection-state&scope=workouts%3Aread")!
+    }
+
     private var session: ProgressaSession {
         ProgressaSession(
             accessToken: "access", refreshToken: "refresh", userId: "user-1",

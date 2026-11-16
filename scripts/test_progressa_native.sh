@@ -13,4 +13,6 @@ xcodebuild test -project "$PROJECT_ROOT/ProgressaNative/ProgressaNative.xcodepro
   -only-testing:ProgressaNativeTests/WorkoutAPIContractTests \
   -only-testing:ProgressaNativeTests/WorkoutSliceTests \
   -only-testing:ProgressaNativeTests/HealthMetadataTests \
+  -only-testing:ProgressaNativeTests/AuthProfileTests \
+  -only-testing:ProgressaNativeTests/QuantivitaConnectTests \
   CODE_SIGNING_ALLOWED=NO

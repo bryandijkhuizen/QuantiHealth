@@ -4,6 +4,8 @@ services:
       context: ./server
     container_name: quantivita
     restart: unless-stopped
+    # Public upstreams must not inherit a stale host VPN resolver.
+    dns: [1.1.1.1, 8.8.8.8]
     environment:
       PORT: 8080
       QUANTIVITA_DATA_DIR: /data

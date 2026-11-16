@@ -10,6 +10,9 @@ final class LinkedProgressaUITests: XCTestCase {
         app.staticTexts["Indoor Cycling · Part 1"].tap()
         XCTAssertTrue(app.staticTexts["Average power, 185 W"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.staticTexts["Average heart rate, 0 bpm"].exists)
+        XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Unavailable")).firstMatch.exists)
+        XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Normalized power")).firstMatch.exists)
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label MATCHES %@", "8[.,]00 km")).firstMatch.exists)
         let details = XCTAttachment(screenshot: app.screenshot())
         details.name = "Cycling measurements"; details.lifetime = .keepAlways; add(details)
         app.navigationBars.buttons.element(boundBy: 0).tap()
@@ -20,6 +23,24 @@ final class LinkedProgressaUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Preview combination"].isEnabled)
         let selection = XCTAttachment(screenshot: app.screenshot())
         selection.name = "Combine selection"; selection.lifetime = .keepAlways; add(selection)
+    }
+
+    func testRouteCardAndMissingMeasurements() {
+        let app = XCUIApplication()
+        app.launchArguments += ["-uiTestingCycling", "-uiTestingRoute"]
+        app.launch()
+        app.tabBars.buttons["Log"].tap()
+        app.staticTexts["Indoor Cycling · Part 1"].tap()
+        XCTAssertTrue(app.descendants(matching: .any)["workoutRoute"].waitForExistence(timeout: 5))
+        let route = XCTAttachment(screenshot: app.screenshot())
+        route.name = "Workout route card"; route.lifetime = .keepAlways; add(route)
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        app.staticTexts["Indoor Cycling · Part 2"].tap()
+        XCTAssertTrue(app.staticTexts["Average power, 0 W"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Energy")).firstMatch.exists)
+        XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Unavailable")).firstMatch.exists)
+        XCTAssertFalse(app.descendants(matching: .any)["workoutRoute"].exists)
+        XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label ENDSWITH %@", " km")).firstMatch.exists)
     }
 
     func testOnlyLinkedProgressaDetailsAppearInsideHealthActivity() {

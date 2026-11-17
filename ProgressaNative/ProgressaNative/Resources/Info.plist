@@ -7,7 +7,7 @@
 <key>CFBundleName</key><string>Progressa</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>NSSupportsLiveActivities</key><true/>
-<key>CFBundleShortVersionString</key><string>2.3.0</string><key>CFBundleVersion</key><string>1</string>
+<key>CFBundleShortVersionString</key><string>2.3.1</string><key>CFBundleVersion</key><string>1</string>
 <key>CFBundleURLTypes</key><array><dict><key>CFBundleURLName</key><string>progressa</string><key>CFBundleURLSchemes</key><array><string>progressa</string></array></dict></array>
 <key>ProgressaSupabaseAnonKey</key><string>$(SUPABASE_ANON_KEY)</string>
 <key>ProgressaSupabaseURL</key><string>$(PROGRESSA_SUPABASE_URL)</string>

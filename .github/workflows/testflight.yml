@@ -81,7 +81,8 @@ jobs:
         run: xcodebuild -version
 
       - name: Test Quantivita before distribution
-        timeout-minutes: 10
+        # Cold simulator startup and installation can exceed ten minutes on hosted Macs.
+        timeout-minutes: 20
         if: matrix.app.id == 'quantivita-native'
         run: bash scripts/test_quantivita_native.sh
 
